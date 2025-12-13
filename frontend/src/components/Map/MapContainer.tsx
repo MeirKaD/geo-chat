@@ -1,6 +1,5 @@
 import { useMemo, useRef } from 'react';
-import type { Map as MaplibreMap } from 'maplibre-gl';
-import Map from 'react-map-gl/maplibre';
+import Map, { type MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MapControls from './MapControls';
 import MapMarkers from './MapMarkers';
@@ -33,7 +32,7 @@ interface MapContainerProps {
 }
 
 export default function MapContainer({ data }: MapContainerProps) {
-  const mapRef = useRef<MaplibreMap | null>(null);
+  const mapRef = useRef<MapRef | null>(null);
 
   const markers = data?.markers ?? [];
 
