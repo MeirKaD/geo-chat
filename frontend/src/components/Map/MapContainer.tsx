@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react';
+import type { Map as MaplibreMap } from 'maplibre-gl';
 import Map from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MapControls from './MapControls';
@@ -12,6 +13,12 @@ export interface MapViewData {
     title: string;
     description?: string;
     category?: string;
+    popup?: {
+      title?: string;
+      description?: string;
+      footer?: string;
+      html?: string;
+    };
   }[];
   bounds?: {
     minLat: number;
@@ -59,7 +66,8 @@ export default function MapContainer({ data }: MapContainerProps) {
           latitude: m.lat,
           longitude: m.lng,
           title: m.title,
-          description: m.description
+          description: m.description,
+          popup: m.popup
         }))}
       />
     </Map>
