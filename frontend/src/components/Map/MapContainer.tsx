@@ -1,8 +1,19 @@
 import { useMemo, useRef } from 'react';
 import Map, { type MapRef } from 'react-map-gl/maplibre';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MapControls from './MapControls';
 import MapMarkers from './MapMarkers';
+
+// Enable RTL text plugin globally (must be called before any map is created)
+let rtlPluginLoaded = false;
+if (!rtlPluginLoaded) {
+  maplibregl.setRTLTextPlugin(
+    'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js',
+    true
+  );
+  rtlPluginLoaded = true;
+}
 
 export interface MapViewData {
   markers: {
@@ -56,7 +67,7 @@ export default function MapContainer({ data }: MapContainerProps) {
         zoom: 11
       }}
       style={{ width: '100%', height: '100vh' }}
-      mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+     mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
     >
       <MapControls />
       <MapMarkers
