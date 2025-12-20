@@ -50,19 +50,9 @@ export default function MapContainer({ data }: MapContainerProps) {
 
   // Get user's current location on mount
   useEffect(() => {
-    console.log('[MapContainer] Checking geolocation availability...');
-
     if ('geolocation' in navigator) {
-      console.log('[MapContainer] Geolocation API is available, requesting position...');
-
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log('[MapContainer] Geolocation success:', {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          });
-
           const newLocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
@@ -72,7 +62,6 @@ export default function MapContainer({ data }: MapContainerProps) {
 
           // Fly to user location if no data bounds exist
           if (!data?.bounds && mapRef.current) {
-            console.log('[MapContainer] Flying to user location...');
             mapRef.current.flyTo({
               center: [newLocation.longitude, newLocation.latitude],
               zoom: 11,
@@ -81,11 +70,7 @@ export default function MapContainer({ data }: MapContainerProps) {
           }
         },
         (error) => {
-          console.error('[MapContainer] Geolocation error:', {
-            code: error.code,
-            message: error.message
-          });
-          // Fallback to SF on error
+          console.warn('Failed to get user location:', error.message);
         },
         {
           enableHighAccuracy: false,
@@ -93,33 +78,21 @@ export default function MapContainer({ data }: MapContainerProps) {
           maximumAge: 0
         }
       );
-    } else {
-      console.warn('[MapContainer] Geolocation API not available in this browser');
     }
   }, [data?.bounds]);
 
   const center = useMemo(() => {
-    console.log('[MapContainer] Calculating center with:', {
-      hasBounds: !!data?.bounds,
-      hasUserLocation: !!userLocation,
-      userLocation
-    });
-
     if (data?.bounds) {
       const { minLat, minLng, maxLat, maxLng } = data.bounds;
-      const boundsCenter = {
+      return {
         latitude: (minLat + maxLat) / 2,
         longitude: (minLng + maxLng) / 2
       };
-      console.log('[MapContainer] Using bounds center:', boundsCenter);
-      return boundsCenter;
     }
     // Use user location if available, otherwise fallback to SF
     if (userLocation) {
-      console.log('[MapContainer] Using user location:', userLocation);
       return userLocation;
     }
-    console.log('[MapContainer] Using SF fallback');
     return { latitude: 37.8, longitude: -122.4 };
   }, [data, userLocation]);
 
