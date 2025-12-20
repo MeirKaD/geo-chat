@@ -1,5 +1,6 @@
 import { Marker, Popup } from 'react-map-gl/maplibre';
 import { useState } from 'react';
+import CustomMarker from './CustomMarker';
 
 interface MarkerData {
   id: string;
@@ -12,6 +13,14 @@ interface MarkerData {
     description?: string;
     footer?: string;
     html?: string;
+  };
+  data?: {
+    rating?: number;
+    url?: string;
+    website?: string;
+    phone?: string;
+    priceLevel?: string;
+    address?: string;
   };
 }
 
@@ -27,13 +36,106 @@ export default function MapMarkers({ markers, onMarkerClick }: MapMarkersProps) 
     if (marker.popup?.html) {
       return <div dangerouslySetInnerHTML={{ __html: marker.popup.html }} />;
     }
+
+    const rating = marker.data?.rating;
+    const priceLevel = marker.data?.priceLevel;
+    const url = marker.data?.url;
+    const website = marker.data?.website;
+    const phone = marker.data?.phone;
+    const address = marker.data?.address;
+
     return (
-      <div className="text-sm space-y-1">
-        <div className="font-semibold">{marker.popup?.title ?? marker.title}</div>
-        <div className="text-gray-700">{marker.popup?.description ?? marker.description}</div>
-        {marker.popup?.footer && (
-          <div className="text-xs text-gray-500">{marker.popup.footer}</div>
+      <div className="min-w-[240px] max-w-[300px]">
+        {/* Title */}
+        <div className="font-bold text-base mb-2 text-gray-900">
+          {marker.popup?.title ?? marker.title}
+        </div>
+
+        {/* Rating */}
+        {rating && (
+          <div className="flex items-center gap-1 mb-2">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className="text-yellow-400"
+                  style={{
+                    opacity: star <= Math.round(rating) ? 1 : 0.3,
+                  }}
+                >
+                  ⭐
+                </span>
+              ))}
+            </div>
+            <span className="text-sm font-medium text-gray-700">
+              {rating.toFixed(1)}
+            </span>
+          </div>
         )}
+
+        {/* Price Level */}
+        {priceLevel && (
+          <div className="mb-2">
+            <span className="text-green-600 font-semibold">{priceLevel}</span>
+          </div>
+        )}
+
+        {/* Description */}
+        {(marker.popup?.description || marker.description) && (
+          <div className="text-sm text-gray-600 mb-3 line-clamp-3">
+            {marker.popup?.description ?? marker.description}
+          </div>
+        )}
+
+        {/* Address */}
+        {address && (
+          <div className="text-xs text-gray-500 mb-2 flex items-start gap-1">
+            <span>📍</span>
+            <span>{address}</span>
+          </div>
+        )}
+
+        {/* Footer */}
+        {marker.popup?.footer && (
+          <div className="text-xs text-gray-500 mb-2 border-t pt-2">
+            {marker.popup.footer}
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 mt-3 pt-2 border-t border-gray-200">
+          {url && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded hover:bg-blue-600 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View Details
+            </a>
+          )}
+          {website && (
+            <a
+              href={website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Website
+            </a>
+          )}
+          {phone && (
+            <a
+              href={`tel:${phone}`}
+              className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded hover:bg-green-200 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              📞 Call
+            </a>
+          )}
+        </div>
       </div>
     );
   };
@@ -48,15 +150,12 @@ export default function MapMarkers({ markers, onMarkerClick }: MapMarkersProps) 
           anchor="bottom"
           onClick={() => onMarkerClick?.(marker)}
         >
-          <div
-            className="cursor-pointer"
-            style={{
-              fontSize: '24px',
-            }}
+          <CustomMarker
+            rating={marker.data?.rating}
+            isHovered={hovered?.id === marker.id}
+            onClick={() => onMarkerClick?.(marker)}
             onMouseEnter={() => setHovered(marker)}
-          >
-            📍
-          </div>
+          />
         </Marker>
       ))}
       {hovered && (
@@ -64,14 +163,15 @@ export default function MapMarkers({ markers, onMarkerClick }: MapMarkersProps) 
           longitude={hovered.longitude}
           latitude={hovered.latitude}
           anchor="top"
-          closeButton={false}
+          closeButton={true}
           closeOnMove={false}
           onClose={() => setHovered(null)}
-          maxWidth="260px"
+          maxWidth="320px"
+          className="custom-popup"
         >
           <div
             onMouseLeave={() => setHovered(null)}
-            className="p-2 text-gray-900"
+            className="p-3"
           >
             {renderPopupContent(hovered)}
           </div>

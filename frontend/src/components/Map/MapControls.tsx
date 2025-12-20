@@ -10,7 +10,6 @@ export default function MapControls() {
       <GeolocateControl
         position="top-right"
         trackUserLocation
-        showUserHeading
       />
 
       {/* Scale bar */}

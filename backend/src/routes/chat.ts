@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { Router, type Request, type Response } from "express";
 
-import { runGeoChatAgent } from "../services/langgraph";
+import { runPipelineAgent } from "../services/langgraph";
 import type { ChatRequest, ChatResponse } from "../types";
 
 const router = Router();
@@ -25,17 +25,21 @@ router.post("/", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
     const resolvedThreadId =
       threadId || (req.headers["x-client-thread"] as string) || randomUUID();
 
-    const agentResult = await runGeoChatAgent({
+    // Use new pipeline architecture
+    const pipelineResult = await runPipelineAgent({
       userMessage: lastMessage.content,
       threadId: resolvedThreadId,
     });
 
     const responseBody: ChatResponse = {
       role: "assistant",
-      content: agentResult.content,
+      content: pipelineResult.message,
       timestamp: new Date().toISOString(),
       threadId: resolvedThreadId,
-      map: agentResult.map ?? null,
+      map: {
+        markers: pipelineResult.markers,
+        polygons: pipelineResult.polygons,
+      },
     };
 
     res.json(responseBody);
