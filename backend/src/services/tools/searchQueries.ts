@@ -6,7 +6,7 @@ import {
   buildSearchQueriesForTool,
   type QueryToolInput,
   type QueryToolOutput,
-} from "./queryBuilder";
+} from "./queryBuilder.js";
 
 const filtersSchema = z.object({
   query: z.string().optional(),

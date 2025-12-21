@@ -1,4 +1,4 @@
-import { loadToolBundle } from "./tools";
+import { loadToolBundle } from "./tools.js";
 
 export interface McpStatus {
   serverCount: number;

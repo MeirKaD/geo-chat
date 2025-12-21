@@ -2,5 +2,5 @@ export {
   createMcpClient,
   initializeMcpClient,
   loadMcpTools,
-} from "./client";
-export { loadToolBundle, type ToolBundle } from "./tools";
+} from "./client.js";
+export { loadToolBundle, type ToolBundle } from "./tools.js";

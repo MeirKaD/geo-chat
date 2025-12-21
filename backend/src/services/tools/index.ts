@@ -1,11 +1,11 @@
 export {
   displayOnMapTool,
   type DisplayOnMapPayload,
-} from "./mapActions";
+} from "./mapActions.js";
 export {
   geocodeTool,
   isochroneTool,
-} from "./geospatial";
+} from "./geospatial.js";
 export {
   coordinateSchema,
   markerSchema,
@@ -13,13 +13,13 @@ export {
   type GeoCoordinate,
   type MapMarker,
   type MapPolygon,
-} from "./schemas";
+} from "./schemas.js";
 export {
   geocodeAddress as mapboxGeocode,
   geocodeBatch as mapboxGeocodeBatch,
   type GeocodeResult,
-} from "../mapbox/geocoding";
-export { getIsochrone as mapboxIsochrone } from "../mapbox/isochrone";
+} from "../mapbox/geocoding.js";
+export { getIsochrone as mapboxIsochrone } from "../mapbox/isochrone.js";
 export {
   buildSearchQueries,
   buildSearchQueriesForTool,
@@ -28,8 +28,8 @@ export {
   type QueryToolOutput,
   type UserIntent,
   type SearchFilters,
-} from "./queryBuilder";
-export { searchQueryTool } from "./searchQueries";
+} from "./queryBuilder.js";
+export { searchQueryTool } from "./searchQueries.js";
 export {
   computeBounds,
   toGeoJSON,
@@ -37,4 +37,4 @@ export {
   clusterMarkers,
   type MapResponse,
   type BBox,
-} from "./mapResponse";
+} from "./mapResponse.js";

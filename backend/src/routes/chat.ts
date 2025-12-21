@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { Router, type Request, type Response } from "express";
 
-import { runPipelineAgent, runPipelineAgentStream } from "../services/langgraph";
-import type { ChatRequest, ChatResponse } from "../types";
+import { runPipelineAgent, runPipelineAgentStream } from "../services/langgraph/index.js";
+import type { ChatRequest, ChatResponse } from "../types/index.js";
 
 const router = Router();
 

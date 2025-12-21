@@ -6,8 +6,8 @@ import {
   geocodeTool,
   isochroneTool,
   searchQueryTool,
-} from "../tools";
-import { initializeMcpClient } from "./client";
+} from "../tools/index.js";
+import { initializeMcpClient } from "./client.js";
 
 export interface ToolBundle {
   client: MultiServerMCPClient;

@@ -19,10 +19,10 @@ import {
 import type { RunnableConfig } from "@langchain/core/runnables";
 import type { DynamicStructuredTool } from "@langchain/core/tools";
 
-import { loadToolBundle, type ToolBundle } from "../mcp";
-import { extractMapPayloadFromMessages } from "../tools/mapResponse";
-import type { MapResponse } from "../tools";
-import { geoSystemPrompt } from "./prompts";
+import { loadToolBundle, type ToolBundle } from "../mcp/index.js";
+import { extractMapPayloadFromMessages } from "../tools/mapResponse.js";
+import type { MapResponse } from "../tools/index.js";
+import { geoSystemPrompt } from "./prompts.js";
 
 dotenv.config();
 

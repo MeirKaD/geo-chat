@@ -8,7 +8,7 @@ import {
   type GeoCoordinate,
   type MapMarker,
   type MapPolygon,
-} from "./schemas";
+} from "./schemas.js";
 
 export interface DisplayOnMapPayload {
   action: "display_on_map";

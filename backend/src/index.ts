@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import chatRouter from './routes/chat';
-import healthRouter from './routes/health';
-import { warmMcpConnections } from './services/mcp/status';
+import chatRouter from './routes/chat.js';
+import healthRouter from './routes/health.js';
+import { warmMcpConnections } from './services/mcp/status.js';
 
 dotenv.config();
 

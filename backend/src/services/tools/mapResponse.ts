@@ -4,7 +4,7 @@ import Supercluster, {
   type AnyProps,
 } from "supercluster";
 
-import type { MapMarker, MapPolygon, GeoCoordinate } from "./schemas";
+import type { MapMarker, MapPolygon, GeoCoordinate } from "./schemas.js";
 import { isToolMessage, type BaseMessage } from "@langchain/core/messages";
 
 export interface BBox {

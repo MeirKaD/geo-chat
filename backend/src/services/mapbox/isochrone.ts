@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-import type { GeoCoordinate, MapPolygon } from "../tools";
+import type { GeoCoordinate, MapPolygon } from "../tools/index.js";
 
 dotenv.config();
 

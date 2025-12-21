@@ -4,13 +4,13 @@ import { z } from "zod";
 import {
   geocodeAddress as mapboxGeocode,
   type GeocodeResult as MapboxGeocodeResult,
-} from "../mapbox/geocoding";
-import { getIsochrone as mapboxIsochrone } from "../mapbox/isochrone";
+} from "../mapbox/geocoding.js";
+import { getIsochrone as mapboxIsochrone } from "../mapbox/isochrone.js";
 import {
   coordinateSchema,
   type GeoCoordinate,
   type MapPolygon,
-} from "./schemas";
+} from "./schemas.js";
 
 type TravelMode = "walking" | "driving" | "cycling";
 
