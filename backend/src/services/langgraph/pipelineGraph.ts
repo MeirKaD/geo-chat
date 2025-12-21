@@ -17,6 +17,7 @@ import { extractIntent } from './nodes/intentExtraction.js';
 import { generateQueries } from './nodes/queryGeneration.js';
 import { searchAndScrape } from './nodes/searchAndScrape.js';
 import { extractPlaces } from './nodes/dataExtraction.js';
+import { enrichAddresses } from './nodes/addressEnrichment.js';
 import { geocodeStream } from './nodes/geocoding.js';
 import { summarize } from './nodes/summarization.js';
 
@@ -44,6 +45,7 @@ function createPipelineGraphDefinition() {
     .addNode('generate_queries', generateQueries)
     .addNode('search_and_scrape', searchAndScrape)
     .addNode('extract_places', extractPlaces)
+    .addNode('address_enrichment', enrichAddresses)
     .addNode('geocode_stream', geocodeStream)
     .addNode('summarize', summarize)
     // Define linear flow: START → ... → END
@@ -51,7 +53,8 @@ function createPipelineGraphDefinition() {
     .addEdge('extract_intent', 'generate_queries')
     .addEdge('generate_queries', 'search_and_scrape')
     .addEdge('search_and_scrape', 'extract_places')
-    .addEdge('extract_places', 'geocode_stream')
+    .addEdge('extract_places', 'address_enrichment')
+    .addEdge('address_enrichment', 'geocode_stream')
     .addEdge('geocode_stream', 'summarize')
     .addEdge('summarize', END);
 
@@ -99,6 +102,7 @@ export {
   generateQueries,
   searchAndScrape,
   extractPlaces,
+  enrichAddresses,
   geocodeStream,
   summarize,
 };

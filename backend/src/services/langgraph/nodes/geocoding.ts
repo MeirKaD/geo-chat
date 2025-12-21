@@ -130,7 +130,7 @@ function placeToMarker(place: PlaceData, index: number): MapMarker | null {
  * @param places - Places to geocode
  * @param minRelevance - Minimum relevance score (0-1) to accept geocoding results
  */
-async function geocodePlaces(places: PlaceData[], minRelevance: number = 0.75): Promise<MapMarker[]> {
+async function geocodePlaces(places: PlaceData[], minRelevance: number = 0.3): Promise<MapMarker[]> {
   const markers: MapMarker[] = [];
 
   // Separate places with and without coordinates
@@ -158,9 +158,22 @@ async function geocodePlaces(places: PlaceData[], minRelevance: number = 0.75): 
 
   // Geocode places without coordinates
   if (placesNeedingGeocode.length > 0) {
+    // Filter out vague addresses (no street number) to avoid noisy geocodes
+    const preciseCandidates = placesNeedingGeocode.filter(({ place }) => /\d/.test(place.address ?? ''));
+    const vagueCount = placesNeedingGeocode.length - preciseCandidates.length;
+
+    if (vagueCount > 0) {
+      console.warn(`[Node 5: Geocode] Skipping ${vagueCount} places with vague addresses (no street number)`);
+    }
+
+    if (preciseCandidates.length === 0) {
+      console.warn('[Node 5: Geocode] No precise addresses to geocode after filtering');
+      return markers;
+    }
+
     // Combine place name with address for better geocoding accuracy
     // E.g., "Ashkelon Marina, Ashkelon, Israel" is more specific than just "Ashkelon, Israel"
-    const addresses = placesNeedingGeocode.map(({ place }) => {
+    const addresses = preciseCandidates.map(({ place }) => {
       return `${place.name}, ${place.address}`;
     });
 
@@ -171,8 +184,8 @@ async function geocodePlaces(places: PlaceData[], minRelevance: number = 0.75): 
 
     // Convert geocoded results to markers (with validation)
     let lowRelevanceCount = 0;
-    for (let i = 0; i < placesNeedingGeocode.length; i++) {
-      const item = placesNeedingGeocode[i];
+    for (let i = 0; i < preciseCandidates.length; i++) {
+      const item = preciseCandidates[i];
       if (!item) {
         continue;
       }
@@ -237,7 +250,7 @@ export async function geocodeStream(state: PipelineState): Promise<PipelineState
 
     // Use a higher relevance threshold for more accurate geocoding
     // 0.85 ensures we only accept high-confidence matches
-    const markers = await geocodePlaces(state.extractedPlaces, 0.85);
+    const markers = await geocodePlaces(state.extractedPlaces, 0.35);
 
     console.log(`[Node 5: Geocode Stream] Created ${markers.length} markers`);
 
