@@ -53,7 +53,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [progressLogs, setProgressLogs] = useState<string[]>([]);
-  const [fastMode, setFastMode] = useState(false);
+  const [fastMode, setFastMode] = useState(true);
   const threadIdRef = useRef<string>(crypto.randomUUID());
 
   const handleSendMessage = async (content: string) => {
