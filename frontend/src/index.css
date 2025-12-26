@@ -7,6 +7,9 @@
     0% {
       background-position: 200% center;
     }
+    82% {
+      background-position: -200% center;
+    }
     100% {
       background-position: -200% center;
     }
@@ -25,7 +28,7 @@
 
   .shiny-button {
     position: relative;
-    animation: glow-pulse 3s ease-in-out infinite;
+    animation: glow-pulse 7s ease-in-out infinite;
   }
 
   .shiny-button::before {
@@ -42,7 +45,7 @@
       rgba(255, 255, 255, 0) 70%
     );
     background-size: 200% 100%;
-    animation: shine 3s linear infinite;
+    animation: shine 12s linear infinite;
     border-radius: 9999px;
     pointer-events: none;
   }
@@ -114,7 +117,7 @@ button:focus-visible {
     background-color: #ffffff;
   }
   a:hover {
-    color: #747bff;
+    color: #0026ff;
   }
   button {
     background-color: #f9f9f9;

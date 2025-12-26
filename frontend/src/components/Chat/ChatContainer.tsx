@@ -135,11 +135,11 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
               href="https://brightdata.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="shiny-button px-5 py-2.5 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 text-white hover:text-white text-sm font-semibold rounded-full overflow-hidden no-underline"
+              className="shiny-button px-3 py-1.5 bg-gradient-to-r from-blue-600 via-blue-800 to-blue-600 text-white hover:text-white text-xs font-semibold rounded-full overflow-hidden no-underline"
             >
               <span className="relative z-10 text-white">
                 Build Your Own Agent
-                <span className="block text-xs font-normal text-blue-100">Free credits included</span>
+                <span className="block text-[10px] font-normal text-blue-100">Free credits included</span>
               </span>
             </a>
             {/* Fast Mode Toggle */}
