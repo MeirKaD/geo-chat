@@ -2,8 +2,8 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
 import {
-  geocodeAddress as mapboxGeocode,
-  type GeocodeResult as MapboxGeocodeResult,
+  geocodeAddress as googleGeocode,
+  type GeocodeResult as GoogleGeocodeResult,
 } from "../mapbox/geocoding.js";
 import { getIsochrone as mapboxIsochrone } from "../mapbox/isochrone.js";
 import {
@@ -54,15 +54,15 @@ const buildFallbackIsochrone = (
 
 export const geocodeTool = tool(
   async ({ address }) => {
-    const result = await mapboxGeocode(address);
+    const result = await googleGeocode(address);
     if (!result) {
       throw new Error("No geocoding result found for the given address.");
     }
-    return result satisfies MapboxGeocodeResult;
+    return result satisfies GoogleGeocodeResult;
   },
   {
     name: "geocode_address",
-    description: "Geocode an address/place using Mapbox Geocoding API.",
+    description: "Geocode an address/place using Google Maps Geocoding API.",
     schema: geocodeSchema,
   }
 );

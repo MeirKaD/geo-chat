@@ -29,6 +29,7 @@ export interface MapPayload {
 export interface ChatRequest {
   messages: ChatMessage[];
   threadId?: string;
+  fastMode?: boolean;  // Use fast pipeline (no scraping, limited to 10 results)
 }
 
 export interface ChatResponse {

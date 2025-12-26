@@ -1,14 +1,19 @@
 import { randomUUID } from "crypto";
 import { Router, type Request, type Response } from "express";
 
-import { runPipelineAgent, runPipelineAgentStream } from "../services/langgraph/index.js";
+import {
+  runPipelineAgent,
+  runPipelineAgentStream,
+  runFastPipelineAgent,
+  runFastPipelineAgentStream,
+} from "../services/langgraph/index.js";
 import type { ChatRequest, ChatResponse } from "../types/index.js";
 
 const router = Router();
 
 router.post("/", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
   try {
-    const { messages, threadId } = req.body;
+    const { messages, threadId, fastMode } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Messages array is required" });
@@ -25,8 +30,11 @@ router.post("/", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
     const resolvedThreadId =
       threadId || (req.headers["x-client-thread"] as string) || randomUUID();
 
-    // Use new pipeline architecture
-    const pipelineResult = await runPipelineAgent({
+    // Choose pipeline based on fastMode flag
+    const runPipeline = fastMode ? runFastPipelineAgent : runPipelineAgent;
+    console.log(`[Chat] Using ${fastMode ? 'FAST' : 'FULL'} pipeline`);
+
+    const pipelineResult = await runPipeline({
       userMessage: lastMessage.content,
       threadId: resolvedThreadId,
     });
@@ -55,7 +63,7 @@ router.post("/", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
 // Streaming endpoint with Server-Sent Events
 router.post("/stream", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
   try {
-    const { messages, threadId } = req.body;
+    const { messages, threadId, fastMode } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Messages array is required" });
@@ -77,8 +85,12 @@ router.post("/stream", async (req: Request<{}, {}, ChatRequest>, res: Response) 
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
+    // Choose pipeline based on fastMode flag
+    const runPipelineStream = fastMode ? runFastPipelineAgentStream : runPipelineAgentStream;
+    console.log(`[Chat Stream] Using ${fastMode ? 'FAST' : 'FULL'} pipeline`);
+
     // Run pipeline with progress updates
-    const pipelineResult = await runPipelineAgentStream(
+    const pipelineResult = await runPipelineStream(
       {
         userMessage: lastMessage.content,
         threadId: resolvedThreadId,
@@ -104,10 +116,14 @@ router.post("/stream", async (req: Request<{}, {}, ChatRequest>, res: Response) 
       },
     };
 
-    res.write(`data: ${JSON.stringify({
+    // SSE data lines cannot contain raw newlines - they must be escaped in the JSON
+    // JSON.stringify handles this, but we need to ensure no literal newlines slip through
+    const jsonData = JSON.stringify({
       type: 'complete',
       ...responseBody
-    })}\n\n`);
+    });
+
+    res.write(`data: ${jsonData}\n\n`);
 
     res.end();
   } catch (error) {

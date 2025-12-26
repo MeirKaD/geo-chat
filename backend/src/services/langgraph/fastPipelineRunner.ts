@@ -1,0 +1,198 @@
+/**
+ * Fast Pipeline Runner
+ *
+ * Entry point for running the fast track pipeline.
+ * Similar to pipelineRunner.ts but uses the fast pipeline graph.
+ */
+
+import { RunnableConfig } from '@langchain/core/runnables';
+import { getFastPipelineGraph } from './fastPipelineGraph.js';
+import { PipelineState, createInitialState } from './pipelineState.js';
+import { PipelineResult } from '../../types/pipeline.js';
+
+/**
+ * Input for running the fast pipeline
+ */
+export interface RunFastPipelineInput {
+  threadId: string;
+  userMessage: string;
+}
+
+const FAST_PIPELINE_NODE_NAMES = [
+  'extract_intent',
+  'generate_queries',
+  'fast_search',
+  'fast_extract',
+  'geocode_stream',
+  'summarize',
+] as const;
+
+type FastPipelineNodeName = (typeof FAST_PIPELINE_NODE_NAMES)[number];
+
+function isFastPipelineNodeName(name: string): name is FastPipelineNodeName {
+  return FAST_PIPELINE_NODE_NAMES.includes(name as FastPipelineNodeName);
+}
+
+/**
+ * Run the fast pipeline agent (blocking)
+ */
+export async function runFastPipelineAgent(input: RunFastPipelineInput): Promise<PipelineResult> {
+  const { threadId, userMessage } = input;
+
+  console.log(`[Fast Pipeline Runner] Starting fast pipeline for thread: ${threadId}`);
+  console.log(`[Fast Pipeline Runner] User message: "${userMessage}"`);
+
+  const graph = getFastPipelineGraph();
+
+  const initialState: Partial<PipelineState> = {
+    userMessage,
+    threadId,
+  };
+
+  const config: RunnableConfig = {
+    configurable: {
+      thread_id: `fast-${threadId}`, // Prefix to avoid conflicts with full pipeline
+    },
+  };
+
+  console.log('[Fast Pipeline Runner] Invoking graph...');
+  const startTime = Date.now();
+
+  const finalState = await graph.invoke(initialState, config);
+
+  const duration = Date.now() - startTime;
+  console.log(`[Fast Pipeline Runner] Completed in ${duration}ms`);
+
+  const { finalMessage, markers, polygons, errors } = finalState;
+
+  console.log(`[Fast Pipeline Runner] Results:`);
+  console.log(`  - Message: "${finalMessage}"`);
+  console.log(`  - Markers: ${markers.length}`);
+  console.log(`  - Errors: ${errors.length}`);
+
+  const result: PipelineResult = {
+    message: finalMessage || 'No results found.',
+    markers,
+    polygons,
+    threadId,
+    errors: errors.length > 0
+      ? errors.map((e) => ({ node: e.node, error: e.error }))
+      : undefined,
+    metadata: {
+      executionTime: duration,
+      nodesExecuted: [...FAST_PIPELINE_NODE_NAMES],
+    },
+  };
+
+  return result;
+}
+
+/**
+ * Run the fast pipeline agent with streaming progress updates
+ */
+export async function runFastPipelineAgentStream(
+  input: RunFastPipelineInput,
+  onProgress?: (progress: { currentStep: string; percentComplete: number; message?: string }) => void
+): Promise<PipelineResult> {
+  const { threadId, userMessage } = input;
+
+  console.log(`[Fast Pipeline Runner Stream] Starting for thread: ${threadId}`);
+
+  const graph = getFastPipelineGraph();
+
+  const initialState: Partial<PipelineState> = {
+    userMessage,
+    threadId,
+  };
+
+  const config: RunnableConfig = {
+    configurable: {
+      thread_id: `fast-${threadId}`,
+    },
+  };
+
+  console.log('[Fast Pipeline Runner Stream] Starting graph stream...');
+  const startTime = Date.now();
+
+  let finalState: PipelineState = { ...createInitialState(userMessage, threadId) } as PipelineState;
+  let receivedState = false;
+
+  for await (const event of await graph.stream(initialState, config)) {
+    const nodeNames = Object.keys(event);
+    if (nodeNames.length === 0) continue;
+
+    const nodeName = nodeNames.find(isFastPipelineNodeName);
+    if (!nodeName) continue;
+
+    const state = event[nodeName] as PipelineState | undefined;
+    if (!state) continue;
+
+    receivedState = true;
+    finalState = { ...finalState, ...state };
+
+    if (state.progress && onProgress) {
+      onProgress({
+        currentStep: state.progress.currentStep,
+        percentComplete: state.progress.percentComplete,
+        message: getFastProgressMessage(state.progress.currentStep, state),
+      });
+    }
+  }
+
+  const duration = Date.now() - startTime;
+  console.log(`[Fast Pipeline Runner Stream] Completed in ${duration}ms`);
+
+  if (!receivedState) {
+    throw new Error('Fast pipeline execution failed - no final state received');
+  }
+
+  const {
+    finalMessage,
+    markers = [],
+    polygons = [],
+    errors = [],
+  } = finalState;
+
+  console.log(`[Fast Pipeline Runner Stream] Results:`);
+  console.log(`  - Message: "${finalMessage}"`);
+  console.log(`  - Markers: ${markers.length}`);
+  console.log(`  - Errors: ${errors.length}`);
+
+  const result: PipelineResult = {
+    message: finalMessage || 'No results found.',
+    markers,
+    polygons,
+    threadId,
+    errors: errors.length > 0
+      ? errors.map((e) => ({ node: e.node, error: e.error }))
+      : undefined,
+    metadata: {
+      executionTime: duration,
+      nodesExecuted: [...FAST_PIPELINE_NODE_NAMES],
+    },
+  };
+
+  return result;
+}
+
+/**
+ * Get progress message for fast pipeline
+ */
+function getFastProgressMessage(step: string, state: PipelineState): string {
+  switch (step) {
+    case 'intent_extraction':
+      return 'Understanding your request...';
+    case 'query_generation':
+      return 'Generating search queries...';
+    case 'fast_search':
+      return `Quick search... (found ${state.searchResults?.length || 0} results)`;
+    case 'fast_extract':
+      return `Extracting places... (${state.extractedPlaces?.length || 0} found)`;
+    case 'geocoding':
+      return `Getting coordinates... (${state.markers?.length || 0} markers)`;
+    case 'summarization':
+      return 'Preparing your results...';
+    default:
+      return `Processing: ${step}`;
+  }
+}

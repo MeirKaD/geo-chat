@@ -5,7 +5,7 @@
  * It handles places that already have coordinates and geocodes those that don't.
  *
  * Key features:
- * - Uses Mapbox Geocoding API for addresses without coordinates
+ * - Uses Google Maps Geocoding API for addresses without coordinates
  * - Parallel geocoding for performance (geocodeBatch)
  * - Generates unique IDs for markers
  * - Creates rich popup content with place details
@@ -158,22 +158,9 @@ async function geocodePlaces(places: PlaceData[], minRelevance: number = 0.3): P
 
   // Geocode places without coordinates
   if (placesNeedingGeocode.length > 0) {
-    // Filter out vague addresses (no street number) to avoid noisy geocodes
-    const preciseCandidates = placesNeedingGeocode.filter(({ place }) => /\d/.test(place.address ?? ''));
-    const vagueCount = placesNeedingGeocode.length - preciseCandidates.length;
-
-    if (vagueCount > 0) {
-      console.warn(`[Node 5: Geocode] Skipping ${vagueCount} places with vague addresses (no street number)`);
-    }
-
-    if (preciseCandidates.length === 0) {
-      console.warn('[Node 5: Geocode] No precise addresses to geocode after filtering');
-      return markers;
-    }
-
     // Combine place name with address for better geocoding accuracy
     // E.g., "Ashkelon Marina, Ashkelon, Israel" is more specific than just "Ashkelon, Israel"
-    const addresses = preciseCandidates.map(({ place }) => {
+    const addresses = placesNeedingGeocode.map(({ place }) => {
       return `${place.name}, ${place.address}`;
     });
 
@@ -184,8 +171,8 @@ async function geocodePlaces(places: PlaceData[], minRelevance: number = 0.3): P
 
     // Convert geocoded results to markers (with validation)
     let lowRelevanceCount = 0;
-    for (let i = 0; i < preciseCandidates.length; i++) {
-      const item = preciseCandidates[i];
+    for (let i = 0; i < placesNeedingGeocode.length; i++) {
+      const item = placesNeedingGeocode[i];
       if (!item) {
         continue;
       }

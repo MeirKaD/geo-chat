@@ -135,9 +135,11 @@ export async function extractIntent(state: PipelineState): Promise<PipelineState
     // Create the intent extraction tool
     const tool = createIntentExtractionTool();
 
-    // Get the model and bind the tool
+    // Get the model and bind the tool with forced tool choice
     const model = getModel();
-    const modelWithTools = model.bindTools([tool]);
+    const modelWithTools = model.bindTools([tool], {
+      tool_choice: 'extract_user_intent'  // Force the LLM to use the tool
+    });
 
     // Create the prompt
     const messages = [

@@ -2,8 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const MAPBOX_BASE_URL =
-  "https://api.mapbox.com/geocoding/v5/mapbox.places";
+const GOOGLE_GEOCODING_URL =
+  "https://maps.googleapis.com/maps/api/geocode/json";
 
 export interface GeocodeResult {
   lat: number;
@@ -14,52 +14,80 @@ export interface GeocodeResult {
   relevance: number;
 }
 
-interface MapboxFeature {
-  place_name?: string;
-  text?: string;
-  place_type?: string[];
-  relevance?: number;
-  center?: [number, number];
+interface GoogleAddressComponent {
+  long_name: string;
+  short_name: string;
+  types: string[];
 }
 
-interface MapboxGeocodeResponse {
-  features?: MapboxFeature[];
+interface GoogleGeometry {
+  location: {
+    lat: number;
+    lng: number;
+  };
+  location_type: string;
+  viewport?: {
+    northeast: { lat: number; lng: number };
+    southwest: { lat: number; lng: number };
+  };
+}
+
+interface GoogleGeocodeResult {
+  address_components: GoogleAddressComponent[];
+  formatted_address: string;
+  geometry: GoogleGeometry;
+  place_id: string;
+  types: string[];
+  partial_match?: boolean;
+}
+
+interface GoogleGeocodeResponse {
+  results: GoogleGeocodeResult[];
+  status: string;
+  error_message?: string;
 }
 
 const geocodeCache = new Map<string, GeocodeResult | null>();
 
 const getApiKey = (): string => {
-  const key = process.env.GEO_MAPBOX_API_KEY;
+  const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) {
-    throw new Error("GEO_MAPBOX_API_KEY is required for Mapbox geocoding.");
+    throw new Error("GOOGLE_MAPS_API_KEY is required for Google Maps geocoding.");
   }
   return key;
 };
 
-const buildUrl = (query: string, token: string): string => {
-  const encoded = encodeURIComponent(query);
+const buildUrl = (query: string, apiKey: string): string => {
   const params = new URLSearchParams({
-    access_token: token,
-    limit: "1",
-    autocomplete: "false",
-    types: "address,poi,place,locality,neighborhood,region",
+    address: query,
+    key: apiKey,
   });
-  return `${MAPBOX_BASE_URL}/${encoded}.json?${params.toString()}`;
+  return `${GOOGLE_GEOCODING_URL}?${params.toString()}`;
 };
 
-const mapFeatureToResult = (feature: MapboxFeature): GeocodeResult | null => {
-  if (!feature.center || feature.center.length < 2) {
-    return null;
-  }
+const mapResultToGeocodeResult = (result: GoogleGeocodeResult): GeocodeResult => {
+  const { geometry, formatted_address, types, address_components } = result;
 
-  const [lng, lat] = feature.center;
+  // Extract name from address components (use the first component as name)
+  const name = address_components[0]?.long_name || formatted_address.split(",")[0] || "Unknown";
+
+  // Map Google's location_type to a relevance score
+  const relevanceMap: Record<string, number> = {
+    ROOFTOP: 1.0,
+    RANGE_INTERPOLATED: 0.8,
+    GEOMETRIC_CENTER: 0.6,
+    APPROXIMATE: 0.4,
+  };
+
+  const relevance = relevanceMap[geometry.location_type] || 0.5;
+
   return {
-    lat,
-    lng,
-    name: feature.text ?? feature.place_name ?? "Unknown",
-    address: feature.place_name ?? feature.text ?? "",
-    placeType: feature.place_type ?? [],
-    relevance: feature.relevance ?? 0,
+    lat: geometry.location.lat,
+    lng: geometry.location.lng,
+    name,
+    address: formatted_address,
+    placeType: types,
+    relevance,
   };
 };
 
@@ -79,21 +107,34 @@ export const geocodeAddress = async (
 
   if (!response.ok) {
     console.error(
-      `[Mapbox] Geocoding failed (${response.status}): ${response.statusText}`
+      `[Google Maps] Geocoding failed (${response.status}): ${response.statusText}`
     );
     geocodeCache.set(trimmed, null);
     return null;
   }
 
-  const json = (await response.json()) as MapboxGeocodeResponse;
-  const feature = json.features?.[0];
+  const json = (await response.json()) as GoogleGeocodeResponse;
 
-  if (!feature) {
+  // Handle Google Maps API status codes
+  if (json.status !== "OK") {
+    if (json.status === "ZERO_RESULTS") {
+      console.warn(`[Google Maps] No results found for: ${trimmed}`);
+    } else {
+      console.error(
+        `[Google Maps] API error (${json.status}): ${json.error_message || "Unknown error"}`
+      );
+    }
     geocodeCache.set(trimmed, null);
     return null;
   }
 
-  const result = mapFeatureToResult(feature);
+  const firstResult = json.results[0];
+  if (!firstResult) {
+    geocodeCache.set(trimmed, null);
+    return null;
+  }
+
+  const result = mapResultToGeocodeResult(firstResult);
   geocodeCache.set(trimmed, result);
   return result;
 };

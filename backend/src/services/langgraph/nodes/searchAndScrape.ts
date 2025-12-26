@@ -12,30 +12,18 @@
 
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { ScrapedPage, SearchResult } from '../../../types/pipeline.js';
-import { loadToolBundle } from '../../mcp/tools.js';
+import { loadToolBundle, resetToolBundle } from '../../mcp/tools.js';
 
 /**
- * Get or create the MCP client and tools
+ * Execute a single search query using MCP with retry on session expiry
  */
-let toolBundleCache: Awaited<ReturnType<typeof loadToolBundle>> | null = null;
-
-async function getToolBundle() {
-  if (!toolBundleCache) {
-    toolBundleCache = await loadToolBundle();
-  }
-  return toolBundleCache;
-}
-
-/**
- * Execute a single search query using MCP
- */
-async function executeSearch(client: any, query: string): Promise<SearchResult[]> {
+async function executeSearch(query: string, isRetry: boolean = false): Promise<SearchResult[]> {
   try {
-    console.log(`[Search] Executing search for: "${query}"`);
+    console.log(`[Search] Executing search for: "${query}"${isRetry ? ' (retry)' : ''}`);
 
-    // Call the Bright Data search tool via MCP
-    // The tool name is prefixed with "brightdata__"
-    const searchTool = (await getToolBundle()).mcpTools.find(
+    // Get tool bundle (uses global cache in tools.ts)
+    const toolBundle = await loadToolBundle();
+    const searchTool = toolBundle.mcpTools.find(
       (tool) => tool.name === 'brightdata__search_engine'
     );
 
@@ -48,7 +36,7 @@ async function executeSearch(client: any, query: string): Promise<SearchResult[]
     const result = await searchTool.invoke({
       query,
     });
-    // console.log(result)
+
     // Parse the result
     let parsedResult: any;
     if (typeof result === 'string') {
@@ -79,20 +67,30 @@ async function executeSearch(client: any, query: string): Promise<SearchResult[]
     console.log(`[Search] Found ${results.length} results for: "${query}"`);
     return results;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // If session expired and this is not already a retry, reset and retry once
+    if (!isRetry && (errorMessage.includes('Session not found') || errorMessage.includes('session'))) {
+      console.log('[Search] Session expired, reconnecting and retrying...');
+      resetToolBundle();
+      return executeSearch(query, true);
+    }
+
     console.error(`[Search] Error searching for "${query}":`, error);
     return [];
   }
 }
 
 /**
- * Scrape a single URL using MCP
+ * Scrape a single URL using MCP with retry on session expiry
  */
-async function scrapePage(client: any, url: string): Promise<ScrapedPage> {
+async function scrapePage(url: string, isRetry: boolean = false): Promise<ScrapedPage> {
   try {
-    console.log(`[Scrape] Scraping: ${url}`);
+    console.log(`[Scrape] Scraping: ${url}${isRetry ? ' (retry)' : ''}`);
 
-    // Call the Bright Data scrape tool via MCP
-    const scrapeTool = (await getToolBundle()).mcpTools.find(
+    // Get tool bundle (uses global cache in tools.ts)
+    const toolBundle = await loadToolBundle();
+    const scrapeTool = toolBundle.mcpTools.find(
       (tool) => tool.name === 'brightdata__scrape_as_markdown'
     );
 
@@ -122,6 +120,15 @@ async function scrapePage(client: any, url: string): Promise<ScrapedPage> {
       success: true,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // If session expired and this is not already a retry, reset and retry once
+    if (!isRetry && (errorMessage.includes('Session not found') || errorMessage.includes('session'))) {
+      console.log('[Scrape] Session expired, reconnecting and retrying...');
+      resetToolBundle();
+      return scrapePage(url, true);
+    }
+
     console.error(`[Scrape] Error scraping ${url}:`, error);
 
     return {
@@ -129,7 +136,7 @@ async function scrapePage(client: any, url: string): Promise<ScrapedPage> {
       markdown: '',
       scrapedAt: new Date(),
       success: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMessage,
     };
   }
 }
@@ -183,13 +190,10 @@ export async function searchAndScrape(state: PipelineState): Promise<PipelineSta
 
     const { queries, maxResults } = state.generatedQueries;
 
-    // Get MCP client
-    const { client } = await getToolBundle();
-
     // ===== STEP 1: Parallel Search =====
     console.log(`[Node 3: Search & Scrape] Executing ${queries.length} searches in parallel...`);
 
-    const searchPromises = queries.map((query) => executeSearch(client, query));
+    const searchPromises = queries.map((query) => executeSearch(query));
     const searchResultsArrays = await Promise.all(searchPromises);
 
     // Flatten and deduplicate results
@@ -219,7 +223,7 @@ export async function searchAndScrape(state: PipelineState): Promise<PipelineSta
     // ===== STEP 3: Parallel Scraping =====
     console.log(`[Node 3: Search & Scrape] Scraping ${uniqueUrls.length} URLs in parallel...`);
 
-    const scrapePromises = uniqueUrls.map((url) => scrapePage(client, url));
+    const scrapePromises = uniqueUrls.map((url) => scrapePage(url));
 
     // Use Promise.allSettled to handle failures gracefully
     const scrapeResults = await Promise.allSettled(scrapePromises);
