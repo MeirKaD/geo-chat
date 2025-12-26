@@ -137,10 +137,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
               rel="noopener noreferrer"
               className="shiny-button px-2 md:px-3 py-1 md:py-1.5 bg-gradient-to-r from-blue-600 via-blue-800 to-blue-600 text-white hover:text-white text-[10px] md:text-xs font-semibold rounded-full overflow-hidden no-underline"
             >
-              <span className="relative z-10 text-white">
-                Build Your Own Agent
-                <span className="hidden md:block text-[10px] font-normal text-blue-100">Free credits included</span>
-              </span>
+              <span className="relative z-10 text-white">Claim free credits</span>
             </a>
             {/* Fast Mode Toggle */}
             <button
