@@ -115,44 +115,44 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-blue-800/30 bg-slate-900/50 backdrop-blur-sm">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-blue-800/30 bg-slate-900/50 backdrop-blur-sm">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-shrink">
+            <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
               GeoChat
             </h2>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-blue-300/70">Powered by</span>
+            <div className="flex items-center gap-2 mt-1 md:mt-2">
+              <span className="text-[10px] md:text-xs text-blue-300/70">Powered by</span>
               <img
                 src="https://congreso.america-digital.com/wp-content/uploads/2022/07/BRIGHT-DATA.png.webp"
                 alt="Bright Data"
-                className="h-12 object-contain"
+                className="h-8 md:h-12 object-contain"
               />
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-1.5 md:gap-2 flex-shrink-0">
             <a
               href="https://brightdata.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="shiny-button px-3 py-1.5 bg-gradient-to-r from-blue-600 via-blue-800 to-blue-600 text-white hover:text-white text-xs font-semibold rounded-full overflow-hidden no-underline"
+              className="shiny-button px-2 md:px-3 py-1 md:py-1.5 bg-gradient-to-r from-blue-600 via-blue-800 to-blue-600 text-white hover:text-white text-[10px] md:text-xs font-semibold rounded-full overflow-hidden no-underline"
             >
               <span className="relative z-10 text-white">
                 Build Your Own Agent
-                <span className="block text-[10px] font-normal text-blue-100">Free credits included</span>
+                <span className="hidden md:block text-[10px] font-normal text-blue-100">Free credits included</span>
               </span>
             </a>
             {/* Fast Mode Toggle */}
             <button
               onClick={() => setFastMode(!fastMode)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-medium transition-all ${
                 fastMode
                   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                   : 'bg-slate-700/50 text-slate-400 border border-slate-600/30 hover:bg-slate-700'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${fastMode ? 'bg-amber-400' : 'bg-slate-500'}`} />
-              {fastMode ? 'Fast Mode' : 'Deep Search'}
+              <span className={`w-1.5 md:w-2 h-1.5 md:h-2 rounded-full ${fastMode ? 'bg-amber-400' : 'bg-slate-500'}`} />
+              {fastMode ? 'Fast' : 'Deep'}
             </button>
           </div>
         </div>

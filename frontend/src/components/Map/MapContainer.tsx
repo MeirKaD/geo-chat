@@ -212,7 +212,7 @@ export default function MapContainer({ data }: MapContainerProps) {
         latitude: center.latitude,
         zoom: 11
       }}
-      style={{ width: '100%', height: '100vh' }}
+      style={{ width: '100%', height: '100%' }}
       mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
     >
       <MapControls />
