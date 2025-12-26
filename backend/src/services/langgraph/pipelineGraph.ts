@@ -1,13 +1,4 @@
-/**
- * Pipeline Graph Definition
- *
- * This file defines the LangGraph workflow for the pipeline architecture.
- * It creates a graph with 6 specialized nodes instead of the agent-tool loop.
- *
- * Flow:
- * START → extract_intent → generate_queries → search_and_scrape →
- * extract_places → geocode_stream → summarize → END
- */
+
 
 import { StateGraph, START, END, MemorySaver } from '@langchain/langgraph';
 import { PipelineStateAnnotation } from './pipelineState.js';

@@ -1,14 +1,4 @@
-/**
- * Node 3: Parallel Search & Scrape
- *
- * This node executes searches and scrapes results in parallel for maximum performance.
- * Uses MCP Bright Data for both search and scraping operations.
- *
- * Key improvements over old sequential approach:
- * - Parallel execution (5-10x faster)
- * - URL deduplication
- * - Graceful error handling with Promise.allSettled
- */
+
 
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { ScrapedPage, SearchResult } from '../../../types/pipeline.js';

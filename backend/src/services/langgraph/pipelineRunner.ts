@@ -1,13 +1,4 @@
-/**
- * Pipeline Runner
- *
- * This file provides the main entry point for running the pipeline architecture.
- * It handles:
- * - Initializing the pipeline graph
- * - Preparing initial state from user message
- * - Invoking the graph with thread-based checkpointing
- * - Extracting and formatting the final result
- */
+
 
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getPipelineGraph } from './pipelineGraph.js';

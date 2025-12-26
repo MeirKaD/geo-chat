@@ -53,6 +53,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [progressLogs, setProgressLogs] = useState<string[]>([]);
+  const [fastMode, setFastMode] = useState(false);
   const threadIdRef = useRef<string>(crypto.randomUUID());
 
   const handleSendMessage = async (content: string) => {
@@ -79,7 +80,8 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
           if (progress.message) {
             setProgressLogs(prev => [...prev, progress.message!]);
           }
-        }
+        },
+        fastMode
       );
 
       const assistantMessage: Message = {
@@ -128,17 +130,31 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
               />
             </div>
           </div>
-          <a
-            href="https://brightdata.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shiny-button px-5 py-2.5 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 text-white hover:text-white text-sm font-semibold rounded-full overflow-hidden no-underline"
-          >
-            <span className="relative z-10 text-white">
-              Build Your Own Agent
-              <span className="block text-xs font-normal text-blue-100">Free credits included</span>
-            </span>
-          </a>
+          <div className="flex flex-col items-end gap-2">
+            <a
+              href="https://brightdata.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shiny-button px-5 py-2.5 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 text-white hover:text-white text-sm font-semibold rounded-full overflow-hidden no-underline"
+            >
+              <span className="relative z-10 text-white">
+                Build Your Own Agent
+                <span className="block text-xs font-normal text-blue-100">Free credits included</span>
+              </span>
+            </a>
+            {/* Fast Mode Toggle */}
+            <button
+              onClick={() => setFastMode(!fastMode)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                fastMode
+                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  : 'bg-slate-700/50 text-slate-400 border border-slate-600/30 hover:bg-slate-700'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${fastMode ? 'bg-amber-400' : 'bg-slate-500'}`} />
+              {fastMode ? 'Fast Mode' : 'Deep Search'}
+            </button>
+          </div>
         </div>
       </div>
 

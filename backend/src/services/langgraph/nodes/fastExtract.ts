@@ -1,9 +1,4 @@
-/**
- * Fast Extract Node
- *
- * Extracts place data directly from search result titles and snippets.
- * Much faster than scraping but with less detailed information.
- */
+
 
 import { z } from 'zod';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';

@@ -1,9 +1,4 @@
-/**
- * Fast Pipeline Runner
- *
- * Entry point for running the fast track pipeline.
- * Similar to pipelineRunner.ts but uses the fast pipeline graph.
- */
+
 
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getFastPipelineGraph } from './fastPipelineGraph.js';

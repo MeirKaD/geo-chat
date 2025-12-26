@@ -1,15 +1,4 @@
-/**
- * Node 4: Data Extraction
- *
- * This node uses the LLM to extract structured place data from scraped content.
- * Unlike hardcoded parsing, the LLM adapts to different website structures automatically.
- *
- * The LLM extracts:
- * - Name, address, coordinates (if available)
- * - Rating, price level, reviews
- * - Description, amenities, contact info
- * - Category-specific metadata
- */
+
 
 import { z } from 'zod';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';

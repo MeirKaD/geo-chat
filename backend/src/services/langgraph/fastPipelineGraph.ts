@@ -1,18 +1,4 @@
-/**
- * Fast Track Pipeline Graph Definition
- *
- * This is a lightweight version of the main pipeline that prioritizes speed.
- * It skips scraping and address enrichment, extracting places directly from search results.
- *
- * Flow:
- * START → extract_intent → generate_queries → fast_search → fast_extract → geocode_stream → summarize → END
- *
- * Key differences from full pipeline:
- * - No scraping (uses search snippets directly)
- * - No address enrichment
- * - Limited to 10 results
- * - ~5-10x faster than full pipeline
- */
+
 
 import { StateGraph, START, END, MemorySaver } from '@langchain/langgraph';
 import { PipelineStateAnnotation } from './pipelineState.js';

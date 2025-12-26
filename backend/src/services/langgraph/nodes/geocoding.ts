@@ -1,25 +1,10 @@
-/**
- * Node 5: Geocoding & Streaming
- *
- * This node geocodes extracted places and converts them to map markers.
- * It handles places that already have coordinates and geocodes those that don't.
- *
- * Key features:
- * - Uses Google Maps Geocoding API for addresses without coordinates
- * - Parallel geocoding for performance (geocodeBatch)
- * - Generates unique IDs for markers
- * - Creates rich popup content with place details
- * - Gracefully handles geocoding failures
- */
 
 import { geocodeBatch } from '../../mapbox/geocoding.js';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { MapMarker } from '../../tools/schemas.js';
 import { PlaceData } from '../../../types/pipeline.js';
 
-/**
- * Generate a unique ID for a marker
- */
+
 function generateMarkerId(place: PlaceData, index: number): string {
   // Use URL or name as base, fallback to index
   const base = place.url || place.name || `place-${index}`;

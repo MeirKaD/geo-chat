@@ -1,14 +1,4 @@
-/**
- * Node 2: Query Generation
- *
- * This node uses the LLM to generate optimized search queries based on the extracted intent.
- * Unlike the old hardcoded approach, the LLM dynamically decides:
- * - Which domains/websites to search
- * - How to structure the query
- * - How many queries to generate
- *
- * The LLM gets domain hints but makes the final decisions.
- */
+
 
 import { z } from 'zod';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';

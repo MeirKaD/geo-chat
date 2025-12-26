@@ -1,18 +1,3 @@
-/**
- * Node 6: Summarization
- *
- * This node generates the final AI response summarizing the search results.
- * It creates a friendly, concise message that:
- * - Acknowledges what the user was looking for
- * - Highlights the best options found
- * - Mentions key details (ratings, prices, locations)
- * - Provides actionable next steps
- *
- * The LLM adapts its tone and content based on:
- * - Number of results found
- * - Quality of results (ratings, completeness)
- * - User's original intent and filters
- */
 
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';

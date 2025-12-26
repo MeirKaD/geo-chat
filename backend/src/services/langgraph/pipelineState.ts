@@ -1,10 +1,4 @@
-/**
- * Pipeline State Schema
- *
- * Defines the LangGraph state annotation for the pipeline architecture.
- * This replaces the simple MessagesAnnotation with a custom state that
- * tracks all data flowing through the pipeline nodes.
- */
+
 
 import { Annotation } from '@langchain/langgraph';
 import {

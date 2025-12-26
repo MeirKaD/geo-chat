@@ -41,14 +41,15 @@ interface ChatResponse {
 
 export async function sendChatMessage(
   messages: ChatMessage[],
-  threadId: string
+  threadId: string,
+  fastMode: boolean = false
 ): Promise<ChatResponse> {
   const response = await fetch(`${API_URL}/api/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages, threadId }),
+    body: JSON.stringify({ messages, threadId, fastMode }),
   });
 
   if (!response.ok) {
@@ -68,14 +69,15 @@ export interface ProgressUpdate {
 export async function sendChatMessageStream(
   messages: ChatMessage[],
   threadId: string,
-  onProgress: (progress: ProgressUpdate) => void
+  onProgress: (progress: ProgressUpdate) => void,
+  fastMode: boolean = false
 ): Promise<ChatResponse> {
   const response = await fetch(`${API_URL}/api/chat/stream`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages, threadId }),
+    body: JSON.stringify({ messages, threadId, fastMode }),
   });
 
   if (!response.ok) {
@@ -91,37 +93,65 @@ export async function sendChatMessageStream(
   }
 
   let finalResponse: ChatResponse | null = null;
+  let buffer = '';  // Buffer for incomplete lines across chunks
 
   while (true) {
     const { done, value } = await reader.read();
 
     if (done) break;
 
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\n');
+    // Append new chunk to buffer
+    buffer += decoder.decode(value, { stream: true });
+
+    // Split by newlines, keeping the last potentially incomplete line in buffer
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';  // Last element might be incomplete
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        const data = JSON.parse(line.substring(6));
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(trimmedLine.substring(6));
 
-        if (data.type === 'progress') {
-          onProgress({
-            currentStep: data.currentStep,
-            percentComplete: data.percentComplete,
-            message: data.message,
-          });
-        } else if (data.type === 'complete') {
-          finalResponse = {
-            role: data.role,
-            content: data.content,
-            timestamp: data.timestamp,
-            threadId: data.threadId,
-            map: data.map,
-          };
-        } else if (data.type === 'error') {
-          throw new Error(data.message || 'Unknown error');
+          if (data.type === 'progress') {
+            onProgress({
+              currentStep: data.currentStep,
+              percentComplete: data.percentComplete,
+              message: data.message,
+            });
+          } else if (data.type === 'complete') {
+            finalResponse = {
+              role: data.role,
+              content: data.content,
+              timestamp: data.timestamp,
+              threadId: data.threadId,
+              map: data.map,
+            };
+          } else if (data.type === 'error') {
+            throw new Error(data.message || 'Unknown error');
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse SSE data:', trimmedLine.substring(0, 100), parseError);
         }
       }
+    }
+  }
+
+  // Process any remaining buffer content
+  if (buffer.trim().startsWith('data: ')) {
+    try {
+      const data = JSON.parse(buffer.trim().substring(6));
+      if (data.type === 'complete') {
+        finalResponse = {
+          role: data.role,
+          content: data.content,
+          timestamp: data.timestamp,
+          threadId: data.threadId,
+          map: data.map,
+        };
+      }
+    } catch {
+      // Ignore incomplete final chunk
     }
   }
 

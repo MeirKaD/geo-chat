@@ -1,10 +1,4 @@
-/**
- * Node 4b: Address Enrichment
- *
- * Some scraped places come with only city-level addresses (e.g., "Tel Aviv, Israel").
- * This node searches for each place's precise street address and updates the place data
- * before geocoding, improving marker accuracy.
- */
+
 
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';

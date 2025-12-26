@@ -1,10 +1,4 @@
-/**
- * Fast Search Node
- *
- * A lightweight search node for the fast track pipeline.
- * Only performs search - no scraping.
- * Limited to top 10 results for speed.
- */
+
 
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { SearchResult } from '../../../types/pipeline.js';

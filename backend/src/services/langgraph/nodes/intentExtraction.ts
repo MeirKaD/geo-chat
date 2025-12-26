@@ -1,13 +1,4 @@
-/**
- * Node 1: Intent Extraction
- *
- * This node analyzes the user's message to extract structured intent.
- * Uses LLM with tool calling (function calling) to reliably extract:
- * - Location
- * - Place types
- * - Filters/constraints
- * - Whether map/distance is needed
- */
+
 
 import { z } from 'zod';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
