@@ -5,6 +5,37 @@ import { MapMarker } from '../../tools/schemas.js';
 import { PlaceData } from '../../../types/pipeline.js';
 
 
+/**
+ * Normalize a place name for comparison (lowercase, remove extra spaces/punctuation)
+ */
+function normalizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '') // Remove punctuation
+    .replace(/\s+/g, ' ')    // Collapse whitespace
+    .trim();
+}
+
+/**
+ * De-duplicate places by name similarity
+ * Keeps the first occurrence of each unique place
+ */
+function deduplicatePlaces(places: PlaceData[]): PlaceData[] {
+  const seen = new Set<string>();
+  const unique: PlaceData[] = [];
+
+  for (const place of places) {
+    const normalizedName = normalizeName(place.name);
+
+    if (!seen.has(normalizedName)) {
+      seen.add(normalizedName);
+      unique.push(place);
+    }
+  }
+
+  return unique;
+}
+
 function generateMarkerId(place: PlaceData, index: number): string {
   // Use URL or name as base, fallback to index
   const base = place.url || place.name || `place-${index}`;
@@ -220,9 +251,17 @@ export async function geocodeStream(state: PipelineState): Promise<PipelineState
       };
     }
 
+    // De-duplicate places before geocoding
+    const uniquePlaces = deduplicatePlaces(state.extractedPlaces);
+    const duplicatesRemoved = state.extractedPlaces.length - uniquePlaces.length;
+    if (duplicatesRemoved > 0) {
+      console.log(`[Node 5: Geocode] Removed ${duplicatesRemoved} duplicate places`);
+    }
+    console.log(`[Node 5: Geocode] ${uniquePlaces.length} unique places to process`);
+
     // Use a higher relevance threshold for more accurate geocoding
-    // 0.85 ensures we only accept high-confidence matches
-    const markers = await geocodePlaces(state.extractedPlaces, 0.35);
+    // 0.35 ensures we only accept reasonable-confidence matches
+    const markers = await geocodePlaces(uniquePlaces, 0.35);
 
     console.log(`[Node 5: Geocode Stream] Created ${markers.length} markers`);
 
