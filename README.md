@@ -3,6 +3,7 @@
 </p>
 
 <h1 align="center">Geo Chat</h1>
+<img width="1817" height="836" alt="image" src="https://github.com/user-attachments/assets/c162dbbd-4b4d-4261-a440-797b87eb668b" />
 
 <p align="center">
   <strong>AI-Powered Geospatial Assistant with Real-Time Web Data</strong>
