@@ -59,74 +59,35 @@ This project showcases the power of combining:
 
 ## Architecture
 
-Geo Chat uses a **LangGraph-based pipeline** architecture that processes queries through a series of intelligent nodes:
+Geo Chat uses a **LangGraph-based pipeline** architecture that processes queries through a series of intelligent nodes. The application offers two pipeline modes:
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           USER QUERY                                     │
-│                    "Find restaurants in Austin"                          │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Node 1: INTENT EXTRACTION                                               │
-│  • Parse natural language query                                          │
-│  • Identify: place types, location, filters                              │
-│  • Output: structured intent object                                      │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Node 2: QUERY GENERATION                                                │
-│  • Generate optimized search queries                                     │
-│  • Target multiple sources: TripAdvisor, Yelp, Google Maps              │
-│  • Output: ["site:tripadvisor.com restaurants Austin", ...]             │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │                               │
-              FAST MODE                       DEEP MODE
-                    │                               │
-                    ▼                               ▼
-┌───────────────────────────┐     ┌───────────────────────────────────────┐
-│  Node 3a: FAST SEARCH     │     │  Node 3b: SEARCH & SCRAPE             │
-│  • Parallel search        │     │  • Search via Bright Data MCP         │
-│  • Extract from snippets  │     │  • Scrape full page content           │
-│  • ~2-3 seconds           │     │  • Rich data extraction               │
-└───────────────────────────┘     │  • ~10-15 seconds                     │
-                    │             └───────────────────────────────────────┘
-                    │                               │
-                    ▼                               ▼
-┌───────────────────────────┐     ┌───────────────────────────────────────┐
-│  Node 4a: FAST EXTRACT    │     │  Node 4b: DATA EXTRACTION             │
-│  • LLM extracts places    │     │  • LLM parses scraped content         │
-│  • From search snippets   │     │  • Extracts detailed place info       │
-└───────────────────────────┘     └───────────────────────────────────────┘
-                    │                               │
-                    └───────────────┬───────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Node 5: GEOCODING                                                       │
-│  • Deduplicate places by name                                            │
-│  • Geocode addresses via Mapbox API                                      │
-│  • Convert to map markers with coordinates                               │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Node 6: SUMMARIZATION                                                   │
-│  • Generate natural language response                                    │
-│  • Include highlights and recommendations                                │
-│  • Stream response to user                                               │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           MAP DISPLAY                                    │
-│            Interactive markers with place details                        │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+### Fast Pipeline (Default)
+Optimized for speed (~2-3 seconds). Extracts place data directly from search snippets without full page scraping.
+
+<p align="center">
+  <img src="fast-pipeline-graph.png" alt="Fast Pipeline Graph" width="600"/>
+</p>
+
+### Deep Pipeline
+Comprehensive data extraction (~10-15 seconds). Scrapes full page content for richer details including reviews, hours, and amenities.
+
+<p align="center">
+  <img src="deep-pipeline-graph.png" alt="Deep Pipeline Graph" width="600"/>
+</p>
+
+### Pipeline Nodes
+
+| Node | Fast Pipeline | Deep Pipeline | Description |
+|------|---------------|---------------|-------------|
+| **extract_intent** | ✓ | ✓ | Parse natural language, identify place types, location, filters |
+| **generate_queries** | ✓ | ✓ | Generate optimized search queries for TripAdvisor, Yelp, Google Maps |
+| **fast_search** | ✓ | — | Parallel search, extract from snippets |
+| **search_and_scrape** | — | ✓ | Search + scrape full page content via Bright Data MCP |
+| **fast_extract** | ✓ | — | LLM extracts places from search snippets |
+| **extract_places** | — | ✓ | LLM parses scraped content for detailed place info |
+| **address_enrichment** | — | ✓ | Enhance incomplete addresses |
+| **geocode_stream** | ✓ | ✓ | Deduplicate places, geocode via Mapbox API |
+| **summarize** | ✓ | ✓ | Generate natural language response with recommendations |
 
 ### Why Bright Data MCP?
 
