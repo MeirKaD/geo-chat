@@ -53,19 +53,51 @@ export const loadToolBundle = async (): Promise<ToolBundle> => {
 };
 
 /**
- * Load tool bundle with automatic retry on session expiry.
- * If the first attempt fails with a session error, it resets the cache and retries.
+ * Check if an error is recoverable (should trigger a retry)
  */
-export const loadToolBundleWithRetry = async (): Promise<ToolBundle> => {
-  try {
-    return await loadToolBundle();
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.includes('Session not found') || errorMessage.includes('session')) {
-      console.log('[MCP Tools] Session expired, reconnecting...');
-      resetToolBundle();
+const isRecoverableError = (error: unknown): boolean => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  return (
+    errorMessage.includes('Session not found') ||
+    errorMessage.includes('session') ||
+    errorMessage.includes('timed out') ||
+    errorMessage.includes('timeout') ||
+    errorMessage.includes('Failed to connect') ||
+    errorMessage.includes('ECONNREFUSED') ||
+    errorMessage.includes('ENOTFOUND')
+  );
+};
+
+/**
+ * Load tool bundle with automatic retry on connection/session errors.
+ * If the first attempt fails with a recoverable error, it resets the cache and retries.
+ */
+export const loadToolBundleWithRetry = async (
+  maxRetries = 2
+): Promise<ToolBundle> => {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
       return await loadToolBundle();
+    } catch (error) {
+      lastError = error;
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (isRecoverableError(error) && attempt < maxRetries) {
+        console.log(
+          `[MCP Tools] Connection failed (attempt ${attempt}/${maxRetries}): ${errorMessage}`
+        );
+        console.log("[MCP Tools] Resetting cache and retrying...");
+        resetToolBundle();
+        // Small delay before retry
+        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+      } else {
+        throw error;
+      }
     }
-    throw error;
   }
+
+  throw lastError;
 };

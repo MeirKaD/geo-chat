@@ -2,7 +2,7 @@
 
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { SearchResult } from '../../../types/pipeline.js';
-import { loadToolBundle, resetToolBundle } from '../../mcp/tools.js';
+import { loadToolBundleWithRetry, resetToolBundle } from '../../mcp/tools.js';
 
 const MAX_FAST_RESULTS = 10;
 
@@ -13,8 +13,8 @@ async function executeSearch(query: string, isRetry: boolean = false): Promise<S
   try {
     console.log(`[Fast Search] Executing search for: "${query}"${isRetry ? ' (retry)' : ''}`);
 
-    // Get tool bundle (will use cached version if available)
-    const toolBundle = await loadToolBundle();
+    // Get tool bundle (will use cached version if available, retries on connection errors)
+    const toolBundle = await loadToolBundleWithRetry();
     const searchTool = toolBundle.mcpTools.find(
       (tool) => tool.name === 'brightdata__search_engine'
     );
@@ -56,9 +56,17 @@ async function executeSearch(query: string, isRetry: boolean = false): Promise<S
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    // If session expired and this is not already a retry, reset and retry once
-    if (!isRetry && (errorMessage.includes('Session not found') || errorMessage.includes('session'))) {
-      console.log('[Fast Search] Session expired, reconnecting and retrying...');
+    // Check if this is a recoverable error (session/connection issues)
+    const isRecoverable =
+      errorMessage.includes('Session not found') ||
+      errorMessage.includes('session') ||
+      errorMessage.includes('timed out') ||
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('Failed to connect');
+
+    // If recoverable and this is not already a retry, reset and retry once
+    if (!isRetry && isRecoverable) {
+      console.log(`[Fast Search] Connection error, reconnecting and retrying: ${errorMessage}`);
       resetToolBundle();
       return executeSearch(query, true);
     }
