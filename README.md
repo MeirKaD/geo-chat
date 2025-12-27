@@ -19,6 +19,16 @@
   <a href="#-tech-stack">Tech Stack</a>
 </p>
 
+<p align="center">
+  <a href="https://geo-chat-beta.vercel.app/">
+    <img src="https://img.shields.io/badge/🚀_Live_Demo-Try_It_Now-blue?style=for-the-badge" alt="Live Demo"/>
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://brightdata.com/">
+    <img src="https://img.shields.io/badge/💰_Free_Credits-Build_Your_Own-green?style=for-the-badge" alt="Get Free Credits"/>
+  </a>
+</p>
+
 ---
 
 ## What is Geo Chat?
@@ -86,7 +96,7 @@ Comprehensive data extraction (~10-15 seconds). Scrapes full page content for ri
 | **fast_extract** | ✓ | — | LLM extracts places from search snippets |
 | **extract_places** | — | ✓ | LLM parses scraped content for detailed place info |
 | **address_enrichment** | — | ✓ | Enhance incomplete addresses |
-| **geocode_stream** | ✓ | ✓ | Deduplicate places, geocode via Mapbox API |
+| **geocode_stream** | ✓ | ✓ | Deduplicate places, geocode via Google Maps API |
 | **summarize** | ✓ | ✓ | Generate natural language response with recommendations |
 
 ### Why Bright Data MCP?
@@ -112,8 +122,7 @@ This eliminates the complexity of building and maintaining scraping infrastructu
 - **Node.js** 18+
 - **npm** or **yarn**
 - **Bright Data Account** — [Sign up for free credits](https://brightdata.com/)
-- **Mapbox Account** — For geocoding and maps
-- **Google AI API Key** — For Gemini LLM
+- **Google Cloud Account** — For Maps API (geocoding) and Gemini LLM
 
 ### Installation
 
@@ -142,10 +151,10 @@ This eliminates the complexity of building and maintaining scraping infrastructu
    BRIGHTDATA_API_TOKEN=your_brightdata_api_token
 
    # Google AI (Gemini)
-   GOOGLE_AI_API_KEY=your_google_ai_api_key
+   GEMINI_API_KEY=your_gemini_api_key
 
-   # Mapbox (for geocoding)
-   MAPBOX_ACCESS_TOKEN=your_mapbox_token
+   # Google Maps (for geocoding)
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 
    # Server
    PORT=3001
@@ -154,7 +163,6 @@ This eliminates the complexity of building and maintaining scraping infrastructu
    Create `frontend/.env`:
    ```env
    VITE_API_URL=http://localhost:3001
-   VITE_MAPBOX_TOKEN=your_mapbox_token
    ```
 
 4. **Start the development servers**
@@ -212,7 +220,7 @@ The geocoding pipeline automatically:
 | **LangChain** | LLM integration |
 | **Bright Data MCP** | Web search and scraping |
 | **Google Gemini** | Language model |
-| **Mapbox API** | Geocoding |
+| **Google Maps API** | Geocoding |
 | **TypeScript** | Type safety |
 
 ### Frontend
@@ -271,11 +279,10 @@ geo-chat/
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `BRIGHTDATA_API_TOKEN` | Yes | Your Bright Data API token |
-| `GOOGLE_AI_API_KEY` | Yes | Google AI API key for Gemini |
-| `MAPBOX_ACCESS_TOKEN` | Yes | Mapbox token for geocoding |
+| `GEMINI_API_KEY` | Yes | Google AI API key for Gemini LLM |
+| `GOOGLE_MAPS_API_KEY` | Yes | Google Maps API key for geocoding |
 | `PORT` | No | Backend server port (default: 3001) |
 | `VITE_API_URL` | Yes | Backend API URL for frontend |
-| `VITE_MAPBOX_TOKEN` | Yes | Mapbox token for map display |
 
 ---
 
