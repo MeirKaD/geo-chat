@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://brightdata.com/wp-content/themes/flavor/assets/images/logo.svg" alt="Bright Data Logo" width="200"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Bright_Data.svg/2560px-Bright_Data.svg.png" alt="Bright Data Logo" width="200"/>
 </p>
 
 <h1 align="center">Geo Chat</h1>
