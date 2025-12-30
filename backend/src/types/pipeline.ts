@@ -153,6 +153,9 @@ export interface PlaceData {
     lng: number;
   };
 
+  /** Category of the place (e.g., restaurant, hotel, cafe, etc.) */
+  category?: string;
+
   /** Rating (0-5 scale typically) */
   rating?: number;
 

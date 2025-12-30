@@ -11,6 +11,7 @@ import { PlaceData } from '../../../types/pipeline.js';
 const fastPlaceSchema = z.object({
   name: z.string().describe('Place name'),
   address: z.string().describe('Address or location mentioned'),
+  category: z.string().optional().describe('Place category: restaurant, hotel, cafe, bar, beach, ski_resort, museum, park, shopping, gym, spa, hospital, school, airport, theater, cinema, nightclub, bakery, pizza, sushi, burger, ice_cream, winery, brewery, or other'),
   rating: z.number().min(0).max(5).optional().describe('Rating if mentioned'),
   priceLevel: z.string().optional().describe('Price level: $, $$, $$$, or $$$$'),
   price: z.number().optional().describe('Actual price if mentioned'),
@@ -69,6 +70,7 @@ function createFastExtractionPrompt(
 3. The address should include the location "${location}" if not explicitly mentioned
 4. Skip results that are clearly not place listings (articles, guides, etc.)
 5. Include the URL as reference
+6. Assign a category to each place. MUST be one of: restaurant, hotel, cafe, bar, beach, ski_resort, museum, park, shopping, gym, spa, hospital, school, airport, theater, cinema, nightclub, bakery, pizza, sushi, burger, ice_cream, winery, brewery, or other
 
 **Search Results**:
 
@@ -133,6 +135,7 @@ export async function fastExtract(state: PipelineState): Promise<PipelineStateUp
     const places: PlaceData[] = extractedData.places.map((place, index) => ({
       name: place.name,
       address: place.address,
+      category: place.category,
       rating: place.rating,
       priceLevel: place.priceLevel,
       price: place.price,

@@ -18,6 +18,7 @@ const placeDataSchema = z.object({
     })
     .optional()
     .describe('Coordinates if available in the content'),
+  category: z.string().optional().describe('Place category: restaurant, hotel, cafe, bar, beach, ski_resort, museum, park, shopping, gym, spa, hospital, school, or other'),
   rating: z.number().min(0).max(5).optional().describe('Rating (0-5 scale)'),
   reviewCount: z.number().optional().describe('Number of reviews'),
   priceLevel: z.string().optional().describe('Price level: $, $$, $$$, or $$$$'),
@@ -100,6 +101,7 @@ ${filterText ? `**User Filters**: ${filterText}` : ''}
 **Field Guidelines**:
 - **name**: The business/place name
 - **address**: COMPLETE street address including street name and number. NEVER use just city name. If no street address is visible, skip this place.
+- **category**: The type of place. MUST be one of: restaurant, hotel, cafe, bar, beach, ski_resort, museum, park, shopping, gym, spa, hospital, school, airport, theater, cinema, nightclub, bakery, pizza, sushi, burger, ice_cream, winery, brewery, or other
 - **rating**: Numeric rating (convert from stars/text to 0-5 scale)
 - **reviewCount**: Number of reviews if mentioned
 - **priceLevel**: $ (cheap), $$ (moderate), $$$ (expensive), $$$$ (luxury)
@@ -119,6 +121,7 @@ For hotels:
 {
   "name": "Grand Hotel Downtown",
   "address": "123 Main Street, New York, NY 10001",
+  "category": "hotel",
   "rating": 4.5,
   "reviewCount": 328,
   "priceLevel": "$$$",
@@ -131,6 +134,7 @@ For restaurants:
 {
   "name": "Luigi's Italian Kitchen",
   "address": "456 Oak Ave, Brooklyn, NY 11201",
+  "category": "restaurant",
   "rating": 4.2,
   "reviewCount": 156,
   "priceLevel": "$$",

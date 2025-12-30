@@ -115,28 +115,65 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
         </div>
       )}
 
+      {/* Bright Data branding bar */}
+      <a
+        href="https://brightdata.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 mb-2 px-3 py-1.5 mx-auto rounded-full"
+        style={{
+          background: 'rgba(20, 28, 47, 0.9)',
+          border: '1px solid #2D3B55',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        <img
+          src="https://congreso.america-digital.com/wp-content/uploads/2022/07/BRIGHT-DATA.png.webp"
+          alt="Bright Data"
+          className="h-4 object-contain"
+        />
+        <span className="text-[9px] font-medium" style={{ color: '#94A3B8' }}>
+          Agentic enrichment layer
+        </span>
+      </a>
+
       {/* Input area */}
-      <div className="bg-slate-900/95 backdrop-blur-md rounded-full border border-blue-700/40 shadow-xl">
+      <div
+        className="rounded-full shadow-xl"
+        style={{
+          background: 'rgba(20, 28, 47, 0.95)',
+          border: '1px solid #2D3B55',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
         <form onSubmit={handleSubmit} className="flex items-center gap-1.5 p-1.5">
           {/* Fast/Deep mode toggle */}
           <button
             type="button"
             onClick={() => setFastMode(!fastMode)}
-            className="flex-shrink-0 flex items-center h-7 rounded-full bg-slate-800 border border-slate-600/50 overflow-hidden"
+            className="flex-shrink-0 flex items-center h-7 rounded-full overflow-hidden"
+            style={{
+              background: '#1E293B',
+              border: '1px solid #2D3B55',
+            }}
             title={fastMode ? 'Fast Mode - Click for Deep Search' : 'Deep Search - Click for Fast Mode'}
           >
-            <span className={`px-2 py-1 text-[10px] font-semibold transition-all rounded-full ${
-              !fastMode
-                ? 'bg-purple-500 text-white'
-                : 'bg-transparent text-slate-400'
-            }`}>
+            <span
+              className="px-2 py-1 text-[10px] font-semibold transition-all rounded-full"
+              style={{
+                background: !fastMode ? '#0066FF' : 'transparent',
+                color: !fastMode ? '#FFFFFF' : '#64748B',
+              }}
+            >
               Deep
             </span>
-            <span className={`px-2 py-1 text-[10px] font-semibold transition-all rounded-full ${
-              fastMode
-                ? 'bg-amber-500 text-white'
-                : 'bg-transparent text-slate-400'
-            }`}>
+            <span
+              className="px-2 py-1 text-[10px] font-semibold transition-all rounded-full"
+              style={{
+                background: fastMode ? '#FF521C' : 'transparent',
+                color: fastMode ? '#FFFFFF' : '#64748B',
+              }}
+            >
               Fast
             </span>
           </button>
@@ -148,14 +185,19 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about places..."
             disabled={isTyping}
-            className="flex-1 min-w-0 px-3 py-2 bg-transparent text-blue-50 placeholder-blue-400/50 focus:outline-none text-sm"
+            className="flex-1 min-w-0 px-3 py-2 bg-transparent focus:outline-none text-sm"
+            style={{ color: '#FFFFFF' }}
           />
 
           {/* Send button */}
           <button
             type="submit"
             disabled={!input.trim() || isTyping}
-            className="flex-shrink-0 p-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center disabled:from-slate-700 disabled:to-slate-800 disabled:text-blue-400/50 transition-all border-0"
+            className="flex-shrink-0 p-2 rounded-full flex items-center justify-center transition-all border-0"
+            style={{
+              background: !input.trim() || isTyping ? '#1E293B' : '#0066FF',
+              color: !input.trim() || isTyping ? '#64748B' : '#FFFFFF',
+            }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
@@ -166,7 +208,12 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
           <button
             type="button"
             onClick={onExpandClick}
-            className="flex-shrink-0 p-2 bg-slate-700/50 text-blue-300 rounded-full flex items-center justify-center border border-blue-700/40 hover:bg-slate-700"
+            className="flex-shrink-0 p-2 rounded-full flex items-center justify-center transition-all"
+            style={{
+              background: 'transparent',
+              border: '1px solid #2D3B55',
+              color: '#94A3B8',
+            }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />

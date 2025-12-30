@@ -205,27 +205,56 @@ export default function MapContainer({ data }: MapContainerProps) {
   }, [computedBounds, userLocation]);
 
   return (
-    <MapGL
-      ref={mapRef}
-      initialViewState={{
-        longitude: center.longitude,
-        latitude: center.latitude,
-        zoom: 11
-      }}
-      style={{ width: '100%', height: '100%' }}
-      mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
-    >
-      <MapControls />
-      <MapMarkers
-        markers={displayMarkers.map((m) => ({
-          id: m.id ?? `${m.lat},${m.lng}`,
-          latitude: m.lat,
-          longitude: m.lng,
-          title: m.title,
-          description: m.description,
-          popup: m.popup
-        }))}
-      />
-    </MapGL>
+    <div className="relative w-full h-full">
+      <MapGL
+        ref={mapRef}
+        initialViewState={{
+          longitude: center.longitude,
+          latitude: center.latitude,
+          zoom: 11
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+      >
+        <MapControls />
+        <MapMarkers
+          markers={displayMarkers.map((m) => ({
+            id: m.id ?? `${m.lat},${m.lng}`,
+            latitude: m.lat,
+            longitude: m.lng,
+            title: m.title,
+            description: m.description,
+            category: m.category,
+            popup: m.popup
+          }))}
+        />
+      </MapGL>
+      {/* Bright Data attribution - top left on desktop */}
+      <a
+        href="https://brightdata.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hidden md:flex absolute top-3 left-3 items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02]"
+        style={{
+          background: 'rgba(20, 28, 47, 0.95)',
+          border: '1px solid #2D3B55',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        <img
+          src="https://congreso.america-digital.com/wp-content/uploads/2022/07/BRIGHT-DATA.png.webp"
+          alt="Bright Data"
+          className="h-12 object-contain"
+        />
+        <div className="flex flex-col">
+          <span className="text-[10px] font-semibold" style={{ color: '#FFFFFF' }}>
+            Agentic enrichment layer
+          </span>
+          <span className="text-[9px]" style={{ color: '#64748B' }}>
+            Powered by Bright Data
+          </span>
+        </div>
+      </a>
+    </div>
   );
 }

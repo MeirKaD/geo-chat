@@ -113,56 +113,85 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900">
-      {/* Header */}
-      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-blue-800/30 bg-slate-900/50 backdrop-blur-sm">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-shrink">
-            <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+    <div className="flex flex-col h-full" style={{ background: '#0A0E17' }}>
+      {/* Bright Data Brand Header */}
+      <div className="px-4 md:px-5 py-4 md:py-5" style={{ background: 'linear-gradient(180deg, #141C2F 0%, #0A0E17 100%)' }}>
+        {/* GeoChat Title & CTA */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2
+              className="text-xl md:text-2xl font-bold tracking-tight"
+              style={{
+                background: 'linear-gradient(90deg, #FFFFFF 0%, #94A3B8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
               GeoChat
             </h2>
-            <div className="flex items-center gap-2 mt-1 md:mt-2">
-              <span className="text-[10px] md:text-xs text-blue-300/70">Powered by</span>
-              <img
-                src="https://congreso.america-digital.com/wp-content/uploads/2022/07/BRIGHT-DATA.png.webp"
-                alt="Bright Data"
-                className="h-8 md:h-12 object-contain"
-              />
-            </div>
+            <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
+              Location intelligence demo
+            </p>
           </div>
-          <div className="flex flex-col items-end gap-1.5 md:gap-2 flex-shrink-0">
-            <a
-              href="https://brightdata.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shiny-button px-2 md:px-3 py-1 md:py-1.5 bg-gradient-to-r from-blue-600 via-blue-800 to-blue-600 text-white hover:text-white text-[10px] md:text-xs font-semibold rounded-full overflow-hidden no-underline"
+          <a
+            href="https://brightdata.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-90"
+            style={{
+              background: '#0066FF',
+              color: '#FFFFFF',
+            }}
+          >
+            Get free credits
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+
+        {/* Fast/Deep Mode Toggle - Bright Data styled */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium" style={{ color: '#94A3B8' }}>Search mode</span>
+          <button
+            onClick={() => setFastMode(!fastMode)}
+            className="flex items-center rounded-full overflow-hidden transition-all"
+            style={{
+              background: '#1E293B',
+              border: '1px solid #2D3B55',
+            }}
+            aria-label={fastMode ? 'Switch to Deep mode' : 'Switch to Fast mode'}
+          >
+            <span
+              className="px-3 py-1.5 text-xs font-semibold transition-all rounded-full"
+              style={{
+                background: !fastMode ? '#0066FF' : 'transparent',
+                color: !fastMode ? '#FFFFFF' : '#64748B',
+              }}
             >
-              <span className="relative z-10 text-white">Claim free credits</span>
-            </a>
-            {/* Fast/Deep Mode Toggle */}
-            <button
-              onClick={() => setFastMode(!fastMode)}
-              className="flex items-center h-7 md:h-8 rounded-full bg-slate-800 border border-slate-600/50 overflow-hidden"
-              aria-label={fastMode ? 'Switch to Deep mode' : 'Switch to Fast mode'}
+              Deep
+            </span>
+            <span
+              className="px-3 py-1.5 text-xs font-semibold transition-all rounded-full"
+              style={{
+                background: fastMode ? '#FF521C' : 'transparent',
+                color: fastMode ? '#FFFFFF' : '#64748B',
+              }}
             >
-              <span className={`px-2 md:px-3 py-1 text-[10px] md:text-xs font-semibold transition-all rounded-full ${
-                !fastMode
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-transparent text-slate-400'
-              }`}>
-                Deep
-              </span>
-              <span className={`px-2 md:px-3 py-1 text-[10px] md:text-xs font-semibold transition-all rounded-full ${
-                fastMode
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-transparent text-slate-400'
-              }`}>
-                Fast
-              </span>
-            </button>
-          </div>
+              Fast
+            </span>
+          </button>
         </div>
       </div>
+
+      {/* Divider with glow effect */}
+      <div
+        className="h-px mx-4"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, #0066FF 50%, transparent 100%)',
+          opacity: 0.5,
+        }}
+      />
 
       {/* Messages */}
       <MessageList messages={messages} isTyping={isTyping} progressLogs={progressLogs} />

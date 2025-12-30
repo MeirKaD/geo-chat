@@ -8,6 +8,7 @@ interface MarkerData {
   longitude: number;
   title: string;
   description?: string;
+  category?: string;
   popup?: {
     title?: string;
     description?: string;
@@ -152,6 +153,7 @@ export default function MapMarkers({ markers, onMarkerClick }: MapMarkersProps) 
         >
           <CustomMarker
             rating={marker.data?.rating}
+            category={marker.category}
             isHovered={hovered?.id === marker.id}
             onClick={() => onMarkerClick?.(marker)}
             onMouseEnter={() => setHovered(marker)}

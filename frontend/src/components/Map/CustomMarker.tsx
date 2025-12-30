@@ -1,16 +1,54 @@
 interface CustomMarkerProps {
   rating?: number;
+  category?: string;
   isHovered?: boolean;
   onClick?: () => void;
   onMouseEnter?: () => void;
 }
 
+// Category to emoji mapping
+const categoryEmojis: Record<string, string> = {
+  restaurant: '🍽️',
+  hotel: '🏨',
+  cafe: '☕',
+  bar: '🍺',
+  beach: '🏖️',
+  ski_resort: '⛷️',
+  museum: '🏛️',
+  park: '🌳',
+  shopping: '🛍️',
+  gym: '💪',
+  spa: '💆',
+  hospital: '🏥',
+  school: '🏫',
+  airport: '✈️',
+  theater: '🎭',
+  cinema: '🎬',
+  nightclub: '🪩',
+  bakery: '🥐',
+  pizza: '🍕',
+  sushi: '🍣',
+  burger: '🍔',
+  ice_cream: '🍦',
+  winery: '🍷',
+  brewery: '🍺',
+};
+
+function getCategoryEmoji(category?: string): string | null {
+  if (!category) return null;
+  const normalized = category.toLowerCase().replace(/\s+/g, '_');
+  return categoryEmojis[normalized] || null;
+}
+
 export default function CustomMarker({
   rating,
+  category,
   isHovered = false,
   onClick,
   onMouseEnter
 }: CustomMarkerProps) {
+  const emoji = getCategoryEmoji(category);
+
   // Determine color based on rating
   const getMarkerColor = () => {
     if (!rating) return '#3B82F6'; // Default blue
@@ -22,6 +60,61 @@ export default function CustomMarker({
 
   const color = getMarkerColor();
 
+  // If we have an emoji for this category, render emoji marker
+  if (emoji) {
+    return (
+      <div
+        className="cursor-pointer transition-transform duration-200 relative"
+        style={{
+          transform: isHovered ? 'scale(1.3)' : 'scale(1)',
+        }}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+      >
+        <div
+          className="flex items-center justify-center"
+          style={{
+            width: '36px',
+            height: '36px',
+            fontSize: '24px',
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
+          }}
+        >
+          {emoji}
+        </div>
+        {/* Animated pulse effect on hover */}
+        {isHovered && (
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: color,
+              opacity: 0.3,
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}
+          />
+        )}
+        <style>
+          {`
+            @keyframes pulse {
+              0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.3;
+              }
+              50% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+              }
+            }
+          `}
+        </style>
+      </div>
+    );
+  }
+
+  // Default: render the original pin marker
   return (
     <div
       className="cursor-pointer transition-transform duration-200"

@@ -123,6 +123,7 @@ function placeToMarker(place: PlaceData, index: number): MapMarker | null {
     lng: place.coordinates.lng,
     title: place.name,
     description: place.description,
+    category: place.category,
     popup,
     data: {
       address: place.address,
