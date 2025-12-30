@@ -18,6 +18,9 @@ export interface ToolBundle {
 
 let toolBundlePromise: Promise<ToolBundle> | null = null;
 
+// On Vercel, don't cache MCP connections as they become stale between invocations
+const isVercel = !!process.env.VERCEL;
+
 const buildCustomTools = (): DynamicStructuredTool[] => [
   geocodeTool,
   isochroneTool,
@@ -35,6 +38,21 @@ export const resetToolBundle = (): void => {
 };
 
 export const loadToolBundle = async (): Promise<ToolBundle> => {
+  // On Vercel, always create a fresh connection to avoid stale session issues
+  if (isVercel) {
+    console.log('[MCP Tools] Vercel environment detected - creating fresh MCP connection');
+    const { client, tools: mcpTools } = await initializeMcpClient();
+    const customTools = buildCustomTools();
+
+    return {
+      client,
+      mcpTools,
+      customTools,
+      allTools: [...mcpTools, ...customTools],
+    };
+  }
+
+  // Local/other environments: use cached connection
   if (!toolBundlePromise) {
     toolBundlePromise = (async () => {
       const { client, tools: mcpTools } = await initializeMcpClient();

@@ -34,6 +34,7 @@ const modelName = process.env.GEMINI_MODEL ?? "gemini-2.0-flash-exp";
 const isGeminiModel = modelName.toLowerCase().includes("gemini");
 const rawEnableMcp = process.env.ENABLE_MCP_TOOLS ?? "";
 const enableMcpTools = rawEnableMcp.toLowerCase() === "true";
+const isVercel = !!process.env.VERCEL;
 
 let cachedModel: ChatGoogleGenerativeAI | null = null;
 let toolBundlePromise: Promise<ToolBundle> | null = null;
@@ -173,6 +174,12 @@ export interface AgentResult {
 }
 
 const getToolBundle = async (): Promise<ToolBundle> => {
+  // On Vercel, always get fresh connection (loadToolBundle handles this internally)
+  if (isVercel) {
+    return loadToolBundle();
+  }
+
+  // Local: use cached promise
   if (!toolBundlePromise) {
     toolBundlePromise = loadToolBundle();
   }

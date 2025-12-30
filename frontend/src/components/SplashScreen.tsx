@@ -255,7 +255,7 @@ export default function SplashScreen({ onComplete, minDuration = 3500 }: SplashS
               animation: 'fadeSlideUp 1s ease-out 0.8s both',
             }}
           >
-            Powered by AI
+            Powered by The world's largest data network
           </p>
         </div>
 

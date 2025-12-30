@@ -6,9 +6,15 @@ import { PlaceData, SearchResult } from '../../../types/pipeline.js';
 import { loadToolBundle } from '../../mcp/tools.js';
 
 const MAX_ENRICH = 30;
+const isVercel = !!process.env.VERCEL;
 
 let toolBundleCache: Awaited<ReturnType<typeof loadToolBundle>> | null = null;
 async function getToolBundle() {
+  // On Vercel, always get fresh connection
+  if (isVercel) {
+    return loadToolBundle();
+  }
+  // Local: use cached
   if (!toolBundleCache) {
     toolBundleCache = await loadToolBundle();
   }
