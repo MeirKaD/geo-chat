@@ -118,20 +118,27 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
       {/* Input area */}
       <div className="bg-slate-900/95 backdrop-blur-md rounded-full border border-blue-700/40 shadow-xl">
         <form onSubmit={handleSubmit} className="flex items-center gap-1.5 p-1.5">
-          {/* Fast mode toggle */}
+          {/* Fast/Deep mode toggle */}
           <button
             type="button"
             onClick={() => setFastMode(!fastMode)}
-            className={`flex-shrink-0 p-2 rounded-full flex items-center justify-center transition-all ${
-              fastMode
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
-            }`}
-            title={fastMode ? 'Fast Mode' : 'Deep Search'}
+            className="flex-shrink-0 flex items-center h-7 rounded-full bg-slate-800 border border-slate-600/50 overflow-hidden"
+            title={fastMode ? 'Fast Mode - Click for Deep Search' : 'Deep Search - Click for Fast Mode'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-            </svg>
+            <span className={`px-2 py-1 text-[10px] font-semibold transition-all rounded-full ${
+              !fastMode
+                ? 'bg-purple-500 text-white'
+                : 'bg-transparent text-slate-400'
+            }`}>
+              Deep
+            </span>
+            <span className={`px-2 py-1 text-[10px] font-semibold transition-all rounded-full ${
+              fastMode
+                ? 'bg-amber-500 text-white'
+                : 'bg-transparent text-slate-400'
+            }`}>
+              Fast
+            </span>
           </button>
 
           {/* Input */}

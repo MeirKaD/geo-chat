@@ -139,17 +139,26 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
             >
               <span className="relative z-10 text-white">Claim free credits</span>
             </a>
-            {/* Fast Mode Toggle */}
+            {/* Fast/Deep Mode Toggle */}
             <button
               onClick={() => setFastMode(!fastMode)}
-              className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-medium transition-all ${
-                fastMode
-                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                  : 'bg-slate-700/50 text-slate-400 border border-slate-600/30 hover:bg-slate-700'
-              }`}
+              className="flex items-center h-7 md:h-8 rounded-full bg-slate-800 border border-slate-600/50 overflow-hidden"
+              aria-label={fastMode ? 'Switch to Deep mode' : 'Switch to Fast mode'}
             >
-              <span className={`w-1.5 md:w-2 h-1.5 md:h-2 rounded-full ${fastMode ? 'bg-amber-400' : 'bg-slate-500'}`} />
-              {fastMode ? 'Fast' : 'Deep'}
+              <span className={`px-2 md:px-3 py-1 text-[10px] md:text-xs font-semibold transition-all rounded-full ${
+                !fastMode
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-transparent text-slate-400'
+              }`}>
+                Deep
+              </span>
+              <span className={`px-2 md:px-3 py-1 text-[10px] md:text-xs font-semibold transition-all rounded-full ${
+                fastMode
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-transparent text-slate-400'
+              }`}>
+                Fast
+              </span>
             </button>
           </div>
         </div>
