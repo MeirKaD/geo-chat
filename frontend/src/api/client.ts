@@ -24,6 +24,19 @@ interface ChatResponse {
         footer?: string;
         html?: string;
       };
+      data?: {
+        address?: string;
+        url?: string;
+        rating?: number;
+        priceLevel?: string;
+        price?: number;
+        phone?: string;
+        website?: string;
+        hours?: string;
+        amenities?: string[];
+        photos?: string[];
+        metadata?: any;
+      };
     }[];
     polygons?: {
       id: string;

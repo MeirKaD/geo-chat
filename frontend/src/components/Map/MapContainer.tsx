@@ -31,6 +31,19 @@ export interface MapViewData {
       footer?: string;
       html?: string;
     };
+    data?: {
+      address?: string;
+      url?: string;
+      rating?: number;
+      priceLevel?: string;
+      price?: number;
+      phone?: string;
+      website?: string;
+      hours?: string;
+      amenities?: string[];
+      photos?: string[];
+      metadata?: any;
+    };
   }[];
   bounds?: {
     minLat: number;
@@ -227,7 +240,8 @@ export default function MapContainer({ data }: MapContainerProps) {
             title: m.title,
             description: m.description,
             category: m.category,
-            popup: m.popup
+            popup: m.popup,
+            data: m.data
           }))}
         />
       </MapGL>

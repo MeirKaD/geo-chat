@@ -18,6 +18,21 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
   const [messages, setMessages] = useState<Message[]>([]);
   const threadIdRef = useRef<string>(crypto.randomUUID());
 
+  const handleClearHistory = () => {
+    // Clear messages
+    setMessages([]);
+    setLastResponse(null);
+    setShowResponse(false);
+    // Clear map data
+    if (onMapUpdate) {
+      onMapUpdate(null);
+    }
+    // Clear localStorage
+    localStorage.removeItem('geo-chat-map-data');
+    // Generate new thread ID
+    threadIdRef.current = crypto.randomUUID();
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isTyping) return;
@@ -202,6 +217,23 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
             </svg>
           </button>
 
+          {/* Clear history button */}
+          <button
+            type="button"
+            onClick={handleClearHistory}
+            className="flex-shrink-0 p-2 rounded-full flex items-center justify-center transition-all"
+            style={{
+              background: 'transparent',
+              border: '1px solid #2D3B55',
+              color: '#94A3B8',
+            }}
+            title="Clear history and start fresh"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+            </svg>
+          </button>
+
           {/* Expand button */}
           <button
             type="button"
@@ -212,6 +244,7 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
               border: '1px solid #2D3B55',
               color: '#94A3B8',
             }}
+            title="Expand chat"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />

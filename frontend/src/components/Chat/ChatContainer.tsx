@@ -24,6 +24,19 @@ export interface MapData {
       footer?: string;
       html?: string;
     };
+    data?: {
+      address?: string;
+      url?: string;
+      rating?: number;
+      priceLevel?: string;
+      price?: number;
+      phone?: string;
+      website?: string;
+      hours?: string;
+      amenities?: string[];
+      photos?: string[];
+      metadata?: any;
+    };
   }[];
   polygons?: {
     id: string;
@@ -43,18 +56,31 @@ interface ChatContainerProps {
 }
 
 export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hi! I'm GeoChat. Ask me about any place - restaurants, homes, hotels, or anything location-based!",
-      timestamp: new Date()
-    }
-  ]);
+  const initialMessage: Message = {
+    id: '1',
+    role: 'assistant',
+    content: "Hi! I'm GeoChat. Ask me about any place - restaurants, homes, hotels, or anything location-based!",
+    timestamp: new Date()
+  };
+
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [isTyping, setIsTyping] = useState(false);
   const [progressLogs, setProgressLogs] = useState<string[]>([]);
   const [fastMode, setFastMode] = useState(true);
   const threadIdRef = useRef<string>(crypto.randomUUID());
+
+  const handleClearHistory = () => {
+    // Clear messages
+    setMessages([initialMessage]);
+    // Clear map datay
+    if (onMapUpdate) {
+      onMapUpdate(null);
+    }
+    // Clear localStorage
+    localStorage.removeItem('geo-chat-map-data');
+    // Generate new thread ID
+    threadIdRef.current = crypto.randomUUID();
+  };
 
   const handleSendMessage = async (content: string) => {
 
@@ -118,26 +144,26 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
       <div className="px-4 md:px-5 py-4 md:py-5" style={{ background: 'linear-gradient(180deg, #141C2F 0%, #0A0E17 100%)' }}>
         {/* GeoChat Title & CTA */}
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2
-              className="text-xl md:text-2xl font-bold tracking-tight"
-              style={{
-                background: 'linear-gradient(90deg, #FFFFFF 0%, #94A3B8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              GeoChat
-            </h2>
-            <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: '#B7C9DE' }}>
-              Location intelligence demo
-            </p>
+            <div>
+              <h2
+                className="text-xl md:text-2xl font-bold tracking-tight"
+                style={{
+                  background: 'linear-gradient(90deg, #FFFFFF 0%, #94A3B8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                GeoChat
+              </h2>
+              <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: '#B7C9DE' }}>
+                Location intelligence demo
+              </p>
           </div>
           <a
             href="https://brightdata.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:opacity-90"
+            className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:opacity-90"
             style={{
               background: '#0066FF',
               color: '#FFFFFF',
@@ -153,6 +179,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
         {/* Fast/Deep Mode Toggle - Bright Data styled */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium" style={{ color: '#94A3B8' }}>Search mode</span>
+          <div className="flex items-center gap-2">
           <button
             onClick={() => setFastMode(!fastMode)}
             className="flex items-center rounded-full overflow-hidden transition-all"
@@ -181,6 +208,18 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
               Fast
             </span>
           </button>
+                      {/* Clear history button */}
+                      <button
+              onClick={handleClearHistory}
+              className="p-2 rounded-full transition-all duration-200 hover:bg-slate-800/50"
+              style={{ color: '#64748B' }}
+              title="Clear history and start fresh"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
