@@ -4,6 +4,8 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MapControls from './MapControls';
 import MapMarkers from './MapMarkers';
+import { LangChain } from '@lobehub/icons';
+import brightdataLogo from '../../assets/brightdata.svg';
 
 // Enable RTL text plugin globally (must be called before any map is created)
 let rtlPluginLoaded = false;
@@ -231,28 +233,35 @@ export default function MapContainer({ data }: MapContainerProps) {
       </MapGL>
       {/* Bright Data attribution - top left on desktop */}
       <a
-        href="https://brightdata.com"
+        href="https://docs.brightdata.com/integrations/langchain?utm_source=demo&utm_campaign=Geochat"
         target="_blank"
         rel="noopener noreferrer"
-        className="hidden md:flex absolute top-3 left-3 items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02]"
+        className="hidden md:flex absolute top-3 left-3 flex-col items-start gap-1 px-3 py-2 rounded-lg shadow-lg transition-all duration-300 hover:scale-[1.02]"
         style={{
-          background: 'rgba(20, 28, 47, 0.95)',
+          background: 'rgba(20, 28, 47, 0.85)',
           border: '1px solid #2D3B55',
-          backdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(14px)',
         }}
       >
-        <img
-          src="https://congreso.america-digital.com/wp-content/uploads/2022/07/BRIGHT-DATA.png.webp"
-          alt="Bright Data"
-          className="h-12 object-contain"
-        />
-        <div className="flex flex-col">
-          <span className="text-[10px] font-semibold" style={{ color: '#FFFFFF' }}>
+        <div className="flex flex-col items-center text-center">
+          <span className="text-[13px] font-semibold tracking-wide" style={{ color: '#FFFFFF' }}>
             Agentic enrichment layer
           </span>
-          <span className="text-[9px]" style={{ color: '#64748B' }}>
-            Powered by Bright Data
+          <span className="text-[11px] font-semibold" style={{ color: '#94A3B8' }}>
+            Powered by
           </span>
+          <div className="mt-1.5 flex w-full items-center justify-center gap-3">
+            <img
+              src={brightdataLogo}
+              alt="Bright Data"
+              className="h-10 object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]"
+            />
+            <span className="text-[22px]">🤝</span>
+            <LangChain
+              size={56}
+              color="#FFFFFF"
+            />
+          </div>
         </div>
       </a>
     </div>
