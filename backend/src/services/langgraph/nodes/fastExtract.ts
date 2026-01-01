@@ -16,6 +16,7 @@ const fastPlaceSchema = z.object({
   priceLevel: z.string().optional().describe('Price level: $, $$, $$$, or $$$$'),
   price: z.number().optional().describe('Actual price if mentioned'),
   description: z.string().optional().describe('Brief description from snippet'),
+  sourceIndex: z.number().describe('The index number from the search results (e.g., 1, 2, 3...)'),
 });
 
 const fastExtractSchema = z.object({
@@ -69,7 +70,7 @@ function createFastExtractionPrompt(
 2. Look for ratings, prices, and descriptions
 3. The address should include the location "${location}" if not explicitly mentioned
 4. Skip results that are clearly not place listings (articles, guides, etc.)
-5. Include the URL as reference
+5. **IMPORTANT**: For each place, include the "sourceIndex" field matching the number in brackets (e.g., if the place came from [3], use sourceIndex: 3). This is used to link the place to its original URL.
 6. Assign a category to each place. MUST be one of: restaurant, hotel, cafe, bar, beach, ski_resort, museum, park, shopping, gym, spa, hospital, school, airport, theater, cinema, nightclub, bakery, pizza, sushi, burger, ice_cream, winery, brewery, or other
 
 **Search Results**:
@@ -132,17 +133,22 @@ export async function fastExtract(state: PipelineState): Promise<PipelineStateUp
     const extractedData = await structuredModel.invoke(prompt) as z.infer<typeof fastExtractSchema>;
 
     // Map to PlaceData format
-    const places: PlaceData[] = extractedData.places.map((place, index) => ({
-      name: place.name,
-      address: place.address,
-      category: place.category,
-      rating: place.rating,
-      priceLevel: place.priceLevel,
-      price: place.price,
-      description: place.description,
-      url: searchData[index]?.url || '',
-      metadata: {},
-    }));
+    const places: PlaceData[] = extractedData.places.map((place) => {
+      // Use sourceIndex to get the correct URL (sourceIndex is 1-based, array is 0-based)
+      const sourceUrl = searchData[place.sourceIndex - 1]?.url || searchData[0]?.url || '';
+
+      return {
+        name: place.name,
+        address: place.address,
+        category: place.category,
+        rating: place.rating,
+        priceLevel: place.priceLevel,
+        price: place.price,
+        description: place.description,
+        url: sourceUrl,
+        metadata: {},
+      };
+    });
 
     console.log(`[Fast Extract] Extracted ${places.length} places`);
 

@@ -163,7 +163,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
             href="https://brightdata.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:opacity-90"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:opacity-90"
             style={{
               background: '#0066FF',
               color: '#FFFFFF',
