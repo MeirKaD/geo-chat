@@ -129,7 +129,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
             >
               GeoChat
             </h2>
-            <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
+            <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: '#B7C9DE' }}>
               Location intelligence demo
             </p>
           </div>
@@ -137,13 +137,13 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
             href="https://brightdata.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-90"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:opacity-90"
             style={{
               background: '#0066FF',
               color: '#FFFFFF',
             }}
           >
-            Get free credits
+            Get free web access credits
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
