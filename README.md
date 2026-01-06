@@ -33,7 +33,7 @@
 
 ## What is Geo Chat?
 
-Geo Chat is an open-source demonstration of how to build intelligent geospatial applications using [Bright Data's MCP (Model Context Protocol)](https://brightdata.com/) for real-time web data access. Ask natural language questions like *"Find the best Italian restaurants in Tel Aviv"* or *"Show me coworking spaces near Central Park"*, and watch as the AI searches the web, extracts structured data, geocodes locations, and displays them on an interactive map—all in seconds.
+Geo Chat is an open-source demonstration of how to build intelligent geospatial applications using [Bright Data's MCP (Model Context Protocol)](https://brightdata.com/) for real-time web data access. Ask natural language questions like *"Find the best Italian restaurants in Tel Aviv"* or *"Show me coworking spaces near Central Park"*, and watch as the AI searches the web, extracts structured data, geocodes locations, and displays them on an interactive map—all in seconds
 
 This project showcases the power of combining:
 - **Real-time web scraping** via Bright Data's infrastructure
