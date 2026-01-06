@@ -1,7 +1,7 @@
 import { useRef, useState, useMemo, useEffect } from 'react';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
-import { sendChatMessageStream, resetMessageCounter } from '../../api/client';
+import { sendChatMessageStream } from '../../api/client';
 import { LimitReachedModal } from '../LimitReachedModal';
 
 export interface Message {
@@ -109,24 +109,17 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
   const showLimitModal = userMessageCount >= 5;
 
   const handleClearHistory = async () => {
-    // Reset backend counter
-    try {
-      await resetMessageCounter(threadIdRef.current);
-    } catch (error) {
-      console.error('Failed to reset backend counter:', error);
-    }
+    // DO NOT reset backend counter or message count - limit should persist
 
-    // Clear messages
+    // Clear messages (but keep the count in state)
     setMessages([initialMessage]);
     // Clear map datay
     if (onMapUpdate) {
       onMapUpdate(null);
     }
-    // Clear localStorage
+    // Clear localStorage (but NOT the message count)
     localStorage.removeItem('geo-chat-map-data');
-    localStorage.removeItem('geo-chat-user-message-count');
-    // Generate new thread ID
-    threadIdRef.current = crypto.randomUUID();
+    // Do NOT generate new thread ID - keep the same one to maintain rate limit
   };
 
   const handleSendMessage = async (content: string) => {
