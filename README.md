@@ -72,7 +72,7 @@ This project showcases the power of combining:
 Geo Chat uses a **LangGraph-based pipeline** architecture that processes queries through a series of intelligent nodes. The application offers two pipeline modes:
 
 ### Fast Pipeline (Default)
-Optimized for speed (~2-3 seconds). Extracts place data directly from search snippets without full page scraping.
+Optimized for speed (~2-3 seconds). Extracts place data directly from search snippets without full page scraping
 
 <p align="center">
   <img src="fast-pipeline-graph.png" alt="Fast Pipeline Graph" width="600"/>
