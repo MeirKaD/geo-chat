@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
-import { messageLimiter } from '../services/messageLimiter';
+import { messageLimiter } from '../services/messageLimiter.js';
 
 /**
  * Middleware to enforce message limits per threadId
