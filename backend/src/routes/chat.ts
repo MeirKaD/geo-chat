@@ -8,8 +8,12 @@ import {
   runFastPipelineAgentStream,
 } from "../services/langgraph/index.js";
 import type { ChatRequest, ChatResponse } from "../types/index.js";
+import { messageLimitMiddleware } from "../middleware/messageLimitMiddleware.js";
 
 const router = Router();
+
+// Apply message limit middleware to all chat routes
+router.use(messageLimitMiddleware);
 
 router.post("/", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
   try {
@@ -134,6 +138,32 @@ router.post("/stream", async (req: Request<{}, {}, ChatRequest>, res: Response) 
       message: error instanceof Error ? error.message : "Unknown error",
     })}\n\n`);
     res.end();
+  }
+});
+
+// Endpoint to reset message counter for a thread
+router.post("/reset", async (req: Request, res: Response) => {
+  try {
+    const { threadId } = req.body;
+
+    if (!threadId) {
+      return res.status(400).json({ error: "threadId is required" });
+    }
+
+    const { messageLimiter } = await import("../services/messageLimiter.js");
+    messageLimiter.resetCount(threadId);
+
+    res.json({
+      success: true,
+      message: "Message counter reset successfully",
+      threadId
+    });
+  } catch (error) {
+    console.error("Reset counter error:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 });
 

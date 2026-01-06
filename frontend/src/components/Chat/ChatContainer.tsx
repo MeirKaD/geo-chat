@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo, useEffect } from 'react';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
-import { sendChatMessageStream } from '../../api/client';
+import { sendChatMessageStream, resetMessageCounter } from '../../api/client';
+import { LimitReachedModal } from '../LimitReachedModal';
 
 export interface Message {
   id: string;
@@ -63,13 +64,58 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
     timestamp: new Date()
   };
 
-  const [messages, setMessages] = useState<Message[]>([initialMessage]);
+  // Initialize messages with stored count
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const storedCount = parseInt(localStorage.getItem('geo-chat-user-message-count') || '0', 10);
+    if (storedCount > 0) {
+      // Create placeholder messages to maintain the count
+      const placeholderMessages: Message[] = [initialMessage];
+      for (let i = 0; i < storedCount; i++) {
+        placeholderMessages.push({
+          id: `stored-user-${i}`,
+          role: 'user',
+          content: '[Previous session message]',
+          timestamp: new Date()
+        });
+        placeholderMessages.push({
+          id: `stored-assistant-${i}`,
+          role: 'assistant',
+          content: '[Previous session response]',
+          timestamp: new Date()
+        });
+      }
+      return placeholderMessages;
+    }
+    return [initialMessage];
+  });
   const [isTyping, setIsTyping] = useState(false);
   const [progressLogs, setProgressLogs] = useState<string[]>([]);
   const [fastMode, setFastMode] = useState(true);
   const threadIdRef = useRef<string>(crypto.randomUUID());
 
-  const handleClearHistory = () => {
+  // Count user messages (excluding the initial assistant message)
+  const userMessageCount = useMemo(() => {
+    return messages.filter(m => m.role === 'user').length;
+  }, [messages]);
+
+  // Persist user message count to localStorage
+  useEffect(() => {
+    if (userMessageCount > 0) {
+      localStorage.setItem('geo-chat-user-message-count', userMessageCount.toString());
+    }
+  }, [userMessageCount]);
+
+  // Show modal when user has sent 5 messages
+  const showLimitModal = userMessageCount >= 5;
+
+  const handleClearHistory = async () => {
+    // Reset backend counter
+    try {
+      await resetMessageCounter(threadIdRef.current);
+    } catch (error) {
+      console.error('Failed to reset backend counter:', error);
+    }
+
     // Clear messages
     setMessages([initialMessage]);
     // Clear map datay
@@ -78,11 +124,16 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
     }
     // Clear localStorage
     localStorage.removeItem('geo-chat-map-data');
+    localStorage.removeItem('geo-chat-user-message-count');
     // Generate new thread ID
     threadIdRef.current = crypto.randomUUID();
   };
 
   const handleSendMessage = async (content: string) => {
+    // Prevent sending if limit reached
+    if (userMessageCount >= 5) {
+      return;
+    }
 
     // Add user message
     const userMessage: Message = {
@@ -124,14 +175,22 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
     } catch (err) {
       console.error('Chat error:', err);
 
-      // Add error message
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: '❌ Sorry, I encountered an error. Please make sure the backend server is running.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Check if it's a rate limit error
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('Message limit exceeded') || errorMessage.includes('429')) {
+        // Don't add an error message, just let the modal show
+        // Remove the user message that was just added since it wasn't processed
+        setMessages(prev => prev.slice(0, -1));
+      } else {
+        // Add error message for other errors
+        const assistantError: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '❌ Sorry, I encountered an error. Please make sure the backend server is running.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantError]);
+      }
     } finally {
       setIsTyping(false);
       setProgressLogs([]);
@@ -237,6 +296,9 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
 
       {/* Input */}
       <ChatInput onSendMessage={handleSendMessage} />
+
+      {/* Limit Reached Modal */}
+      <LimitReachedModal isOpen={showLimitModal} />
     </div>
   );
 }

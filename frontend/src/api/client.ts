@@ -184,3 +184,18 @@ export async function checkHealth(): Promise<{ status: string; timestamp: string
 
   return response.json();
 }
+
+export async function resetMessageCounter(threadId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/chat/reset`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ threadId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+}

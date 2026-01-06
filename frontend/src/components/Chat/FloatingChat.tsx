@@ -1,7 +1,8 @@
-import { useState, useRef, type FormEvent } from 'react';
-import { sendChatMessageStream } from '../../api/client';
+import { useState, useRef, useMemo, useEffect, type FormEvent } from 'react';
+import { sendChatMessageStream, resetMessageCounter } from '../../api/client';
 import type { Message, MapData } from './ChatContainer';
 import brightdataLogo from '../../assets/brightdata.svg';
+import { LimitReachedModal } from '../LimitReachedModal';
 
 interface FloatingChatProps {
   onMapUpdate?: (map: MapData | null) => void;
@@ -15,10 +16,55 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
   const [progressLog, setProgressLog] = useState<string>('');
   const [showResponse, setShowResponse] = useState(false);
   const [fastMode, setFastMode] = useState(true);
-  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Initialize messages with stored count
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const storedCount = parseInt(localStorage.getItem('geo-chat-user-message-count') || '0', 10);
+    if (storedCount > 0) {
+      // Create placeholder messages to maintain the count
+      const placeholderMessages: Message[] = [];
+      for (let i = 0; i < storedCount; i++) {
+        placeholderMessages.push({
+          id: `stored-user-${i}`,
+          role: 'user',
+          content: '[Previous session message]',
+          timestamp: new Date()
+        });
+        placeholderMessages.push({
+          id: `stored-assistant-${i}`,
+          role: 'assistant',
+          content: '[Previous session response]',
+          timestamp: new Date()
+        });
+      }
+      return placeholderMessages;
+    }
+    return [];
+  });
+
   const threadIdRef = useRef<string>(crypto.randomUUID());
 
-  const handleClearHistory = () => {
+  const userMessageCount = useMemo(() => {
+    return messages.filter(m => m.role === 'user').length;
+  }, [messages]);
+
+  // Persist user message count to localStorage
+  useEffect(() => {
+    if (userMessageCount > 0) {
+      localStorage.setItem('geo-chat-user-message-count', userMessageCount.toString());
+    }
+  }, [userMessageCount]);
+
+  const showLimitModal = userMessageCount >= 5;
+
+  const handleClearHistory = async () => {
+    // Reset backend counter
+    try {
+      await resetMessageCounter(threadIdRef.current);
+    } catch (error) {
+      console.error('Failed to reset backend counter:', error);
+    }
+
     // Clear messages
     setMessages([]);
     setLastResponse(null);
@@ -29,6 +75,7 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
     }
     // Clear localStorage
     localStorage.removeItem('geo-chat-map-data');
+    localStorage.removeItem('geo-chat-user-message-count');
     // Generate new thread ID
     threadIdRef.current = crypto.randomUUID();
   };
@@ -36,6 +83,11 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isTyping) return;
+
+    // Prevent sending if limit reached
+    if (userMessageCount >= 5) {
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -77,7 +129,16 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
       }
     } catch (err) {
       console.error('Chat error:', err);
-      setLastResponse('Sorry, I encountered an error. Please try again.');
+
+      // Check if it's a rate limit error
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('Message limit exceeded') || errorMessage.includes('429')) {
+        // Don't show error message, just let the modal appear
+        // Remove the user message that was just added since it wasn't processed
+        setMessages(prev => prev.slice(0, -1));
+      } else {
+        setLastResponse('Sorry, I encountered an error. Please try again.');
+      }
     } finally {
       setIsTyping(false);
       setProgressLog('');
@@ -253,6 +314,9 @@ export default function FloatingChat({ onMapUpdate, onExpandClick }: FloatingCha
         </form>
       </div>
       </div>
+
+      {/* Limit Reached Modal */}
+      <LimitReachedModal isOpen={showLimitModal} />
     </div>
   );
 }
