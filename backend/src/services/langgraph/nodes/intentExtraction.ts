@@ -13,6 +13,12 @@ import { ExtractedIntent } from '../../../types/pipeline.js';
 const extractIntentSchema = z.object({
   query: z.string().describe('Natural language query describing what the user wants'),
   location: z.string().describe('Geographic location (city, address, region, etc.). If not mentioned, return "Unknown"'),
+  countryCode: z
+    .string()
+    .length(2)
+    .toLowerCase()
+    .optional()
+    .describe('ISO 3166-1 alpha-2 country code inferred from the location (e.g., "us", "zw"). Omit if unknown'),
   placeTypes: z.array(z.string()).describe('Types of places the user is looking for (e.g., ["hotel", "restaurant", "ski_resort", "hospital", "store"])'),
   filters: z.object({
     maxPrice: z.number().optional().describe('Maximum price/budget'),
@@ -86,31 +92,33 @@ Analyze the user's message and extract structured information:
 1. **Query**: What is the user looking for in natural language?
 2. **Location**: Where are they looking? (city, neighborhood, address, etc.)
    - If no location is mentioned, return "Unknown"
-3. **Place Types**: What types of places? Examples:
+3. **Country Code**: ISO 3166-1 alpha-2 country code for the location (lowercase).
+   - If you can infer it, return it (e.g., "zw" for Zimbabwe). If unknown, return "Unknown" or omit.
+4. **Place Types**: What types of places? Examples:
    - hotel, restaurant, cafe, bar, store, hospital, pharmacy, gym, park
    - real_estate (for homes/apartments), ski_resort, beach, museum, theater
-4. **Filters**: Any constraints mentioned?
+5. **Filters**: Any constraints mentioned?
    - Price ranges, ratings, amenities, dates, number of guests, etc.
-5. **Requires Map**: Should results be shown on a map? (usually yes for location-based queries)
-6. **Requires Distance**: Does the user need travel-time or distance calculations?
+6. **Requires Map**: Should results be shown on a map? (usually yes for location-based queries)
+7. **Requires Distance**: Does the user need travel-time or distance calculations?
    - Examples: "within 10 minutes", "nearby", "walking distance"
 
 Examples:
 
 User: "Find Italian restaurants in Brooklyn under $50"
-→ query: "Italian restaurants", location: "Brooklyn", placeTypes: ["restaurant"],
+→ query: "Italian restaurants", location: "Brooklyn", countryCode: "us", placeTypes: ["restaurant"],
    filters: {cuisine: "Italian", maxPrice: 50}, requiresMap: true, requiresDistance: false
 
 User: "Hotels in Manhattan with pool and gym"
-→ query: "Hotels with pool and gym", location: "Manhattan", placeTypes: ["hotel"],
+→ query: "Hotels with pool and gym", location: "Manhattan", countryCode: "us", placeTypes: ["hotel"],
    filters: {features: ["pool", "gym"]}, requiresMap: true, requiresDistance: false
 
 User: "Pharmacies near me open now"
-→ query: "Pharmacies open now", location: "Unknown", placeTypes: ["pharmacy"],
+→ query: "Pharmacies open now", location: "Unknown", countryCode: "Unknown", placeTypes: ["pharmacy"],
    filters: {openNow: true}, requiresMap: true, requiresDistance: true
 
 User: "3 bedroom apartments in San Francisco under $4000"
-→ query: "3 bedroom apartments", location: "San Francisco", placeTypes: ["real_estate"],
+→ query: "3 bedroom apartments", location: "San Francisco", countryCode: "us", placeTypes: ["real_estate"],
    filters: {beds: 3, maxPrice: 4000}, requiresMap: true, requiresDistance: false
 
 Now extract intent from the user's message.`;
@@ -198,6 +206,7 @@ export async function extractIntent(state: PipelineState): Promise<PipelineState
     const intent: ExtractedIntent = {
       query: extractedData.query,
       location: extractedData.location,
+      countryCode: extractedData.countryCode,
       placeTypes: extractedData.placeTypes,
       filters: extractedData.filters,
       requiresMap: extractedData.requiresMap,

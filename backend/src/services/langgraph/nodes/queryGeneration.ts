@@ -5,6 +5,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { DynamicStructuredTool } from '@langchain/core/tools';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { GeneratedQuery } from '../../../types/pipeline.js';
+import { extractCountryCode } from '../../search/nativeSearch.js';
 
 /**
  * Zod schema for query generation
@@ -27,7 +28,21 @@ const generateQueriesSchema = z.object({
     .array(z.string())
     .optional()
     .describe('Suggested domains/websites used in queries'),
+  countryCode: z
+    .string()
+    .length(2)
+    .toLowerCase()
+    .optional()
+    .describe('ISO 3166-1 alpha-2 country code for the location (e.g., "us", "il", "zw", "gb"). Provide if you can infer it.'),
 });
+
+const normalizeCountryCode = (value?: string | null): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed || trimmed === 'unknown' || trimmed === 'n/a') return undefined;
+  if (!/^[a-z]{2}$/.test(trimmed)) return undefined;
+  return trimmed;
+};
 
 /**
  * Create the query generation tool
@@ -136,6 +151,7 @@ function createQueryPrompt(
 
 User is looking for: ${query}
 Location: ${location}
+Country code: Infer ISO 3166-1 alpha-2 for the location (lowercase)
 Place types: ${placeTypes.join(', ')}
 ${filterText ? `Filters: ${filterText}` : ''}
 
@@ -144,6 +160,7 @@ ${domainHints.map((d) => `- ${d}`).join('\n')}
 
 **Your Task:**
 Generate 2-4 optimized Google search queries using the \`site:\` operator.
+Also return the inferred ISO 3166-1 alpha-2 country code as "countryCode" (lowercase).
 
 **Guidelines:**
 1. **Use site: operator** - Target authoritative sources (e.g., "site:yelp.com")
@@ -277,12 +294,22 @@ export async function generateQueries(state: PipelineState): Promise<PipelineSta
 
     console.log('[Node 2: Generate Queries] Generated queries:', JSON.stringify(extractedData, null, 2));
 
+    const aiCountryCode =
+      normalizeCountryCode(state.extractedIntent?.countryCode) ??
+      normalizeCountryCode(extractedData.countryCode);
+
+    const countryCode = aiCountryCode ?? extractCountryCode(location);
+    if (countryCode) {
+      console.log(`[Node 2: Generate Queries] Using country code: ${countryCode}`);
+    }
+
     // Convert to GeneratedQuery type
     const generatedQueries: GeneratedQuery = {
       queries: extractedData.queries,
       searchStrategy: extractedData.searchStrategy,
       maxResults: extractedData.maxResults,
       domains: extractedData.domains,
+      countryCode,
     };
 
     return {

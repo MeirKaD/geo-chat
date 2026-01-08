@@ -3,72 +3,17 @@
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { ScrapedPage, SearchResult } from '../../../types/pipeline.js';
 import { loadToolBundle, resetToolBundle } from '../../mcp/tools.js';
+import { executeNativeSearch } from '../../search/nativeSearch.js';
 
 /**
- * Execute a single search query using MCP with retry on session expiry
+ * Execute a single search query using native Bright Data API with geo-location support
  */
-async function executeSearch(query: string, isRetry: boolean = false): Promise<SearchResult[]> {
-  try {
-    console.log(`[Search] Executing search for: "${query}"${isRetry ? ' (retry)' : ''}`);
-
-    // Get tool bundle (uses global cache in tools.ts)
-    const toolBundle = await loadToolBundle();
-    const searchTool = toolBundle.mcpTools.find(
-      (tool) => tool.name === 'brightdata__search_engine'
-    );
-
-    if (!searchTool) {
-      console.warn('[Search] Bright Data search tool not found');
-      return [];
-    }
-
-    // Invoke the search tool (only pass query, not num_results)
-    const result = await searchTool.invoke({
-      query,
-    });
-
-    // Parse the result
-    let parsedResult: any;
-    if (typeof result === 'string') {
-      try {
-        parsedResult = JSON.parse(result);
-      } catch {
-        parsedResult = { results: [] };
-      }
-    } else {
-      parsedResult = result;
-    }
-
-    // Extract search results from the "organic" array (Google search format)
-    const results: SearchResult[] = [];
-
-    if (Array.isArray(parsedResult.organic)) {
-      for (let i = 0; i < parsedResult.organic.length; i++) {
-        const item = parsedResult.organic[i];
-        results.push({
-          title: item.title || '',
-          url: item.link || '',
-          snippet: item.description || '',
-          position: i + 1,
-        });
-      }
-    }
-
-    console.log(`[Search] Found ${results.length} results for: "${query}"`);
-    return results;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // If session expired and this is not already a retry, reset and retry once
-    if (!isRetry && (errorMessage.includes('Session not found') || errorMessage.includes('session'))) {
-      console.log('[Search] Session expired, reconnecting and retrying...');
-      resetToolBundle();
-      return executeSearch(query, true);
-    }
-
-    console.error(`[Search] Error searching for "${query}":`, error);
-    return [];
-  }
+async function executeSearch(query: string, countryCode?: string): Promise<SearchResult[]> {
+  return executeNativeSearch({
+    query,
+    countryCode,
+    clientName: 'geo-chat-search',
+  });
 }
 
 /**
@@ -178,12 +123,15 @@ export async function searchAndScrape(state: PipelineState): Promise<PipelineSta
       };
     }
 
-    const { queries, maxResults } = state.generatedQueries;
+    const { queries, maxResults, countryCode } = state.generatedQueries;
 
     // ===== STEP 1: Parallel Search =====
     console.log(`[Node 3: Search & Scrape] Executing ${queries.length} searches in parallel...`);
+    if (countryCode) {
+      console.log(`[Node 3: Search & Scrape] Using geo-location: ${countryCode}`);
+    }
 
-    const searchPromises = queries.map((query) => executeSearch(query));
+    const searchPromises = queries.map((query) => executeSearch(query, countryCode));
     const searchResultsArrays = await Promise.all(searchPromises);
 
     // Flatten and deduplicate results

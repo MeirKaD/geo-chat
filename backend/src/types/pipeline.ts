@@ -20,6 +20,9 @@ export interface ExtractedIntent {
   /** Geographic location (city, address, region, etc.) */
   location: string;
 
+  /** ISO 3166-1 alpha-2 country code inferred from the location (e.g., "us", "zw") */
+  countryCode?: string;
+
   /** Types of places the user is looking for (e.g., ["hotel", "restaurant", "ski_resort"]) */
   placeTypes: string[];
 
@@ -98,6 +101,9 @@ export interface GeneratedQuery {
 
   /** Suggested domains/websites for this query (optional) */
   domains?: string[];
+
+  /** ISO 3166-1 alpha-2 country code for geo-targeting (e.g., 'us', 'il', 'gb') */
+  countryCode?: string;
 
   /** Search parameters/hints */
   hints?: {
