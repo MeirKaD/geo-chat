@@ -54,10 +54,10 @@ export const LimitReachedModal: React.FC<LimitReachedModalProps> = ({ isOpen }) 
           {/* Message */}
           <div className="text-center">
             <h2 className="text-xl font-bold mb-2" style={{ color: '#FFFFFF' }}>
-              Message Limit Reached
+             It's just a Demo
             </h2>
             <p className="text-sm" style={{ color: '#94A3B8' }}>
-              You've reached the limit of 5 messages. To continue, please clone the repo or get free web access credits.
+            Built to demonstrate the power of Agentic AI. This app was brought to you by Bright Data.
             </p>
           </div>
 
