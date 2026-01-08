@@ -136,6 +136,26 @@ export default function MapMarkers({ markers, onMarkerClick }: MapMarkersProps) 
               📞 Call
             </a>
           )}
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${marker.latitude},${marker.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs bg-white border border-gray-300 px-2 py-1.5 rounded hover:bg-gray-50 transition-colors flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+            title="Open in Google Maps"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              className="w-4 h-4"
+            >
+              <path
+                fill="#4285F4"
+                d="M12 0C7.31 0 3.5 3.81 3.5 8.5c0 1.62.46 3.13 1.25 4.42L12 24l7.25-11.08c.79-1.29 1.25-2.8 1.25-4.42C20.5 3.81 16.69 0 12 0z"
+              />
+              <circle fill="#34A853" cx="12" cy="8.5" r="3"/>
+            </svg>
+          </a>
         </div>
       </div>
     );
