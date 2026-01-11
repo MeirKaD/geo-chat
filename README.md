@@ -24,7 +24,7 @@
     <img src="https://img.shields.io/badge/🚀_Live_Demo-Try_It_Now-blue?style=for-the-badge" alt="Live Demo"/>
   </a>
   &nbsp;&nbsp;
-  <a href="https://brightdata.com/">
+  <a href="https://brightdata.com/?hs_signup=1&utm_source=demo&utm_medium=geo-chat&utm_campaign=geo-chat&promo=geo-chat">
     <img src="https://img.shields.io/badge/💰_Free_Credits-Build_Your_Own-green?style=for-the-badge" alt="Get Free Credits"/>
   </a>
 </p>
