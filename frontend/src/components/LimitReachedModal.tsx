@@ -86,9 +86,9 @@ export const LimitReachedModal: React.FC<LimitReachedModalProps> = ({ isOpen }) 
               Clone the repo
             </a>
 
-            {/* Get free credits button */}
+            {/*  credits button */}
             <a
-              href="https://brightdata.com?utm_source=demo&utm_campaign=Geochat"
+              href="https://brightdata.com/?hs_signup=1&utm_source=demo&utm_medium=geo-chat&utm_campaign=geo-chat&promo=geo-chat"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-3 px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-[1.02] border-2"
