@@ -340,5 +340,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <p align="center">
   <strong>Built with Bright Data</strong><br>
-  <a href="https://brightdata.com/">Get your free API credits</a>
+  <a href="https://brightdata.com/?hs_signup=1&utm_source=demo&utm_medium=geo-chat&utm_campaign=geo-chat&promo=geo-chat">Get your free API credits</a>
 </p>
