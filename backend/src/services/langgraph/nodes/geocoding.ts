@@ -3,6 +3,7 @@ import { geocodeBatch } from '../../mapbox/geocoding.js';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { MapMarker } from '../../tools/schemas.js';
 import { PlaceData } from '../../../types/pipeline.js';
+import { isValidUrl } from '../../../utils/urlUtils.js';
 
 
 /**
@@ -117,6 +118,13 @@ function placeToMarker(place: PlaceData, index: number): MapMarker | null {
   const id = generateMarkerId(place, index);
   const popup = createPopupContent(place);
 
+  // Validate URL before including in marker data
+  const validatedUrl = isValidUrl(place.url) ? place.url : undefined;
+
+  if (place.url && !validatedUrl) {
+    console.warn(`[Geocoding] Invalid URL filtered for place "${place.name}": ${place.url}`);
+  }
+
   return {
     id,
     lat: place.coordinates.lat,
@@ -127,7 +135,7 @@ function placeToMarker(place: PlaceData, index: number): MapMarker | null {
     popup,
     data: {
       address: place.address,
-      url: place.url,
+      url: validatedUrl,
       rating: place.rating,
       priceLevel: place.priceLevel,
       price: place.price,

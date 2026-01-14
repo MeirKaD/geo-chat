@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { PlaceData } from '../../../types/pipeline.js';
+import { normalizeUrl, isValidUrl } from '../../../utils/urlUtils.js';
 
 /**
  * Zod schema for a single place
@@ -171,11 +172,21 @@ async function extractFromPage(
     const extractedData = await structuredModel.invoke(promptText) as z.infer<typeof extractPlacesSchema>;
 
     // Ensure all places have the source URL and metadata
-    const places = extractedData.places.map(place => ({
-      ...place,
-      url: place.url || page.url,
-      metadata: {}, // Initialize empty metadata object
-    })) as PlaceData[];
+    const places = extractedData.places.map(place => {
+      const originalUrl = place.url || page.url;
+      const normalizedUrl = normalizeUrl(originalUrl, page.url);
+
+      // Log URL transformation for debugging
+      if (originalUrl !== normalizedUrl) {
+        console.log(`[Data Extraction] URL normalized: ${originalUrl} -> ${normalizedUrl}`);
+      }
+
+      return {
+        ...place,
+        url: normalizedUrl,
+        metadata: {}, // Initialize empty metadata object
+      };
+    }) as PlaceData[];
 
     return places;
   } catch (error) {
@@ -200,6 +211,12 @@ function validatePlaces(places: any[], sourceUrls: string[]): PlaceData[] {
     // Ensure URL is set (use first source URL if not provided)
     if (!place.url && sourceUrls.length > 0) {
       place.url = sourceUrls[0];
+    }
+
+    // Validate URL is absolute and valid
+    if (!isValidUrl(place.url)) {
+      console.warn('[Data Extraction] Skipping place with invalid URL:', place.name, place.url);
+      continue;
     }
 
     // Ensure metadata exists

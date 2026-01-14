@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { PipelineState, PipelineStateUpdate, createProgressUpdate } from '../pipelineState.js';
 import { PlaceData } from '../../../types/pipeline.js';
+import { normalizeUrl, isValidUrl } from '../../../utils/urlUtils.js';
 
 /**
  * Simplified schema for fast extraction
@@ -132,23 +133,39 @@ export async function fastExtract(state: PipelineState): Promise<PipelineStateUp
     console.log('[Fast Extract] Calling LLM for extraction...');
     const extractedData = await structuredModel.invoke(prompt) as z.infer<typeof fastExtractSchema>;
 
-    // Map to PlaceData format
-    const places: PlaceData[] = extractedData.places.map((place) => {
-      // Use sourceIndex to get the correct URL (sourceIndex is 1-based, array is 0-based)
-      const sourceUrl = searchData[place.sourceIndex - 1]?.url || searchData[0]?.url || '';
+    // Map to PlaceData format and filter out invalid URLs
+    const places: PlaceData[] = extractedData.places
+      .map((place) => {
+        // Use sourceIndex to get the correct URL (sourceIndex is 1-based, array is 0-based)
+        const sourceUrl = searchData[place.sourceIndex - 1]?.url || searchData[0]?.url || '';
 
-      return {
-        name: place.name,
-        address: place.address,
-        category: place.category,
-        rating: place.rating,
-        priceLevel: place.priceLevel,
-        price: place.price,
-        description: place.description,
-        url: sourceUrl,
-        metadata: {},
-      };
-    });
+        // Normalize URL to ensure it's absolute
+        const normalizedUrl = normalizeUrl(sourceUrl, sourceUrl);
+
+        // Log URL transformation for debugging
+        if (sourceUrl !== normalizedUrl) {
+          console.log(`[Fast Extract] URL normalized: ${sourceUrl} -> ${normalizedUrl}`);
+        }
+
+        // Validate URL
+        if (!isValidUrl(normalizedUrl)) {
+          console.warn(`[Fast Extract] Invalid URL for place "${place.name}": ${normalizedUrl}`);
+          return null; // Mark for filtering
+        }
+
+        return {
+          name: place.name,
+          address: place.address,
+          category: place.category,
+          rating: place.rating,
+          priceLevel: place.priceLevel,
+          price: place.price,
+          description: place.description,
+          url: normalizedUrl,
+          metadata: {},
+        } as PlaceData;
+      })
+      .filter((place) => place !== null) as PlaceData[]; // Remove invalid places
 
     console.log(`[Fast Extract] Extracted ${places.length} places`);
 
