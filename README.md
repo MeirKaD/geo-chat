@@ -75,14 +75,14 @@ Geo Chat uses a **LangGraph-based pipeline** architecture that processes queries
 Optimized for speed (~2-3 seconds). Extracts place data directly from search snippets without full page scraping
 
 <p align="center">
-  <img src="fast-pipeline-graph.png" alt="Fast Pipeline Graph" width="600"/>
+  <img src="fast-pipeline-graph.png" alt="Fast Pipeline Graph" width="100"/>
 </p>
 
 ### Deep Pipeline
 Comprehensive data extraction (~10-15 seconds). Scrapes full page content for richer details including reviews, hours, and amenities.
 
 <p align="center">
-  <img src="deep-pipeline-graph.png" alt="Deep Pipeline Graph" width="600"/>
+  <img src="deep-pipeline-graph.png" alt="Deep Pipeline Graph" width="100"/>
 </p>
 
 ### Pipeline Nodes
