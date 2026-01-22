@@ -247,7 +247,7 @@ export default function MapContainer({ data }: MapContainerProps) {
       </MapGL>
       {/* Bright Data attribution - top left on desktop */}
       <a
-        href="https://docs.brightdata.com/integrations/langchain?utm_source=demo&utm_campaign=Geochat"
+        href="https://docs.brightdata.com/integrations/langchain?utm_source=demos&utm_campaign=Geochat"
         target="_blank"
         rel="noopener noreferrer"
         className="hidden md:flex absolute top-3 left-3 flex-col items-start gap-1 px-3 py-2 rounded-lg shadow-lg transition-all duration-300 hover:scale-[1.02]"

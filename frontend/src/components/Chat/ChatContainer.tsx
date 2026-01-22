@@ -212,7 +212,7 @@ export default function ChatContainer({ onMapUpdate }: ChatContainerProps) {
               </p>
           </div>
           <a
-            href="https://brightdata.com/?hs_signup=1&utm_source=demo&utm_medium=geo-chat&utm_campaign=geo-chat&promo=geo-chat"
+            href="https://brightdata.com/?hs_signup=1&utm_source=demos&utm_medium=geo-chat&utm_campaign=geo-chat&promo=geo-chat"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:opacity-90"
