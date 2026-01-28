@@ -3,7 +3,7 @@
 import { RunnableConfig } from '@langchain/core/runnables';
 import { getPipelineGraph } from './pipelineGraph.js';
 import { PipelineState, createInitialState } from './pipelineState.js';
-import { PipelineResult } from '../../types/pipeline.js';
+import { PipelineResult, ConversationMessage } from '../../types/pipeline.js';
 
 /**
  * Input for running the pipeline
@@ -13,6 +13,8 @@ export interface RunPipelineInput {
   threadId: string;
   /** User's message */
   userMessage: string;
+  /** Full conversation history (previous messages, excluding current) */
+  messages: ConversationMessage[];
 }
 
 const PIPELINE_NODE_NAMES = [
@@ -44,25 +46,54 @@ function isPipelineNodeName(name: string): name is PipelineNodeName {
  * @returns Pipeline result with final message, markers, and metadata
  */
 export async function runPipelineAgent(input: RunPipelineInput): Promise<PipelineResult> {
-  const { threadId, userMessage } = input;
+  const { threadId, userMessage, messages } = input;
 
   console.log(`[Pipeline Runner] Starting pipeline for thread: ${threadId}`);
   console.log(`[Pipeline Runner] User message: "${userMessage}"`);
+  console.log(`[Pipeline Runner] Conversation history: ${messages.length} previous messages`);
 
   // Get the compiled graph (cached after first call)
   const graph = getPipelineGraph();
 
-  // Prepare initial state
-  const initialState: Partial<PipelineState> = {
-    userMessage,
-    threadId,
-  };
+  // Build conversation context from messages (exclude current message)
+  const previousMessages = messages.slice(0, -1);
 
   // Configure with thread-based checkpointing
   const config: RunnableConfig = {
     configurable: {
       thread_id: threadId,
     },
+  };
+
+  // Retrieve previous state from checkpoint to get previousIntent
+  let previousIntent = null;
+  try {
+    const checkpointState = await graph.getState(config);
+    if (checkpointState?.values?.conversationHistory?.previousIntent) {
+      previousIntent = checkpointState.values.conversationHistory.previousIntent;
+      console.log(`[Pipeline Runner] Retrieved previous intent from checkpoint`);
+    }
+  } catch {
+    // No checkpoint exists yet, which is fine for first message
+  }
+
+  // Prepare initial state with:
+  // - Fresh accumulating channels (markers, places, results) to avoid cross-turn accumulation
+  // - Preserved previousIntent from checkpoint for context continuity
+  const initialState: Partial<PipelineState> = {
+    userMessage,
+    threadId,
+    conversationHistory: {
+      messages: previousMessages,
+      previousIntent,
+    },
+    // Reset accumulating channels to empty arrays for this turn
+    searchResults: [],
+    scrapedContent: [],
+    extractedPlaces: [],
+    markers: [],
+    polygons: [],
+    errors: [],
   };
 
   // Invoke the graph
@@ -136,16 +167,15 @@ export async function runPipelineAgentStream(
   input: RunPipelineInput,
   onProgress?: (progress: { currentStep: string; percentComplete: number; message?: string }) => void
 ): Promise<PipelineResult> {
-  const { threadId, userMessage } = input;
+  const { threadId, userMessage, messages } = input;
 
   console.log(`[Pipeline Runner Stream] Starting pipeline for thread: ${threadId}`);
+  console.log(`[Pipeline Runner Stream] Conversation history: ${messages.length} previous messages`);
 
   const graph = getPipelineGraph();
 
-  const initialState: Partial<PipelineState> = {
-    userMessage,
-    threadId,
-  };
+  // Build conversation context from messages (exclude current message)
+  const previousMessages = messages.slice(0, -1);
 
   const config: RunnableConfig = {
     configurable: {
@@ -153,10 +183,41 @@ export async function runPipelineAgentStream(
     },
   };
 
+  // Retrieve previous state from checkpoint to get previousIntent
+  let previousIntent = null;
+  try {
+    const checkpointState = await graph.getState(config);
+    if (checkpointState?.values?.conversationHistory?.previousIntent) {
+      previousIntent = checkpointState.values.conversationHistory.previousIntent;
+      console.log(`[Pipeline Runner Stream] Retrieved previous intent from checkpoint`);
+    }
+  } catch {
+    // No checkpoint exists yet, which is fine for first message
+  }
+
+  // Prepare initial state with:
+  // - Fresh accumulating channels (markers, places, results) to avoid cross-turn accumulation
+  // - Preserved previousIntent from checkpoint for context continuity
+  const initialState: Partial<PipelineState> = {
+    userMessage,
+    threadId,
+    conversationHistory: {
+      messages: previousMessages,
+      previousIntent,
+    },
+    // Reset accumulating channels to empty arrays for this turn
+    searchResults: [],
+    scrapedContent: [],
+    extractedPlaces: [],
+    markers: [],
+    polygons: [],
+    errors: [],
+  };
+
   console.log('[Pipeline Runner Stream] Starting graph stream...');
   const startTime = Date.now();
 
-  let finalState: PipelineState = { ...createInitialState(userMessage, threadId) } as PipelineState;
+  let finalState: PipelineState = { ...createInitialState(userMessage, threadId, { messages: previousMessages, previousIntent: null }) } as PipelineState;
   let receivedState = false;
 
   // Stream through the graph execution

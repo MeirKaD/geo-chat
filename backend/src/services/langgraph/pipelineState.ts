@@ -8,8 +8,32 @@ import {
   SearchResult,
   ScrapedPage,
   PlaceData,
+  ConversationContext,
+  ConversationMessage,
 } from '../../types/pipeline.js';
 import { MapMarker, MapPolygon } from '../tools/schemas.js';
+
+/**
+ * Create an append reducer that supports explicit reset.
+ * - Pass an empty array [] to reset the channel (clears all previous data)
+ * - Pass undefined/null to keep the current value
+ * - Pass an array with items to append to current value
+ *
+ * This is used for channels that accumulate data within a single pipeline run
+ * but should be reset at the start of each new turn/conversation message.
+ */
+function createResettableAppendReducer<T>() {
+  return (current: T[] | undefined, newValue: T[] | undefined): T[] => {
+    // If newValue is explicitly an empty array, treat it as a reset signal
+    // This happens when we start a new turn and want to clear old data
+    if (Array.isArray(newValue) && newValue.length === 0) {
+      return [];
+    }
+    if (!newValue) return current || [];
+    if (!current) return newValue;
+    return [...current, ...newValue];
+  };
+}
 
 /**
  * Pipeline State Annotation
@@ -40,6 +64,16 @@ export const PipelineStateAnnotation = Annotation.Root({
     default: () => '',
   }),
 
+  /**
+   * Conversation history for multi-turn support
+   * Contains previous messages and the last extracted intent
+   * Reducer: Replace (updated each turn with new context)
+   */
+  conversationHistory: Annotation<ConversationContext>({
+    reducer: (_, newValue) => newValue,
+    default: () => ({ messages: [], previousIntent: null }),
+  }),
+
   // ===== Node 1: Intent Extraction =====
 
   /**
@@ -66,27 +100,19 @@ export const PipelineStateAnnotation = Annotation.Root({
 
   /**
    * Raw search results
-   * Reducer: Append (accumulate results from multiple searches)
+   * Reducer: Resettable append (pass empty array to reset, otherwise accumulates)
    */
   searchResults: Annotation<SearchResult[]>({
-    reducer: (current, newValue) => {
-      if (!newValue) return current || [];
-      if (!current) return newValue;
-      return [...current, ...newValue];
-    },
+    reducer: createResettableAppendReducer<SearchResult>(),
     default: () => [],
   }),
 
   /**
    * Scraped page content
-   * Reducer: Append (accumulate scraped pages)
+   * Reducer: Resettable append (pass empty array to reset, otherwise accumulates)
    */
   scrapedContent: Annotation<ScrapedPage[]>({
-    reducer: (current, newValue) => {
-      if (!newValue) return current || [];
-      if (!current) return newValue;
-      return [...current, ...newValue];
-    },
+    reducer: createResettableAppendReducer<ScrapedPage>(),
     default: () => [],
   }),
 
@@ -94,14 +120,10 @@ export const PipelineStateAnnotation = Annotation.Root({
 
   /**
    * Extracted structured place data
-   * Reducer: Append (accumulate places from multiple extractions)
+   * Reducer: Resettable append (pass empty array to reset, otherwise accumulates)
    */
   extractedPlaces: Annotation<PlaceData[]>({
-    reducer: (current, newValue) => {
-      if (!newValue) return current || [];
-      if (!current) return newValue;
-      return [...current, ...newValue];
-    },
+    reducer: createResettableAppendReducer<PlaceData>(),
     default: () => [],
   }),
 
@@ -109,27 +131,19 @@ export const PipelineStateAnnotation = Annotation.Root({
 
   /**
    * Map markers with geocoded coordinates
-   * Reducer: Append (accumulate markers as they're geocoded)
+   * Reducer: Resettable append (pass empty array to reset, otherwise accumulates)
    */
   markers: Annotation<MapMarker[]>({
-    reducer: (current, newValue) => {
-      if (!newValue) return current || [];
-      if (!current) return newValue;
-      return [...current, ...newValue];
-    },
+    reducer: createResettableAppendReducer<MapMarker>(),
     default: () => [],
   }),
 
   /**
    * Map polygons (isochrones, boundaries, etc.)
-   * Reducer: Append (accumulate polygons)
+   * Reducer: Resettable append (pass empty array to reset, otherwise accumulates)
    */
   polygons: Annotation<MapPolygon[]>({
-    reducer: (current, newValue) => {
-      if (!newValue) return current || [];
-      if (!current) return newValue;
-      return [...current, ...newValue];
-    },
+    reducer: createResettableAppendReducer<MapPolygon>(),
     default: () => [],
   }),
 
@@ -148,14 +162,10 @@ export const PipelineStateAnnotation = Annotation.Root({
 
   /**
    * Errors encountered during pipeline execution
-   * Reducer: Append (accumulate all errors)
+   * Reducer: Resettable append (pass empty array to reset, otherwise accumulates)
    */
   errors: Annotation<Array<{ node: string; error: string; timestamp: Date }>>({
-    reducer: (current, newValue) => {
-      if (!newValue) return current || [];
-      if (!current) return newValue;
-      return [...current, ...newValue];
-    },
+    reducer: createResettableAppendReducer<{ node: string; error: string; timestamp: Date }>(),
     default: () => [],
   }),
 
@@ -186,11 +196,13 @@ export type PipelineStateUpdate = Partial<PipelineState>;
  */
 export function createInitialState(
   userMessage: string,
-  threadId: string
+  threadId: string,
+  conversationHistory?: ConversationContext
 ): Partial<PipelineState> {
   return {
     userMessage,
     threadId,
+    conversationHistory: conversationHistory ?? { messages: [], previousIntent: null },
     extractedIntent: null,
     generatedQueries: null,
     searchResults: [],

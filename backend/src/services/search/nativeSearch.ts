@@ -165,6 +165,15 @@ export const LOCATION_TO_COUNTRY_CODE: Record<string, string> = {
   'netanya': 'il',
   'rishon lezion': 'il',
   'petah tikva': 'il',
+  'ramat gan': 'il',
+  'bnei brak': 'il',
+  'holon': 'il',
+  'bat yam': 'il',
+  'herzliya': 'il',
+  'kfar saba': 'il',
+  'raanana': 'il',
+  'modiin': 'il',
+  'rehovot': 'il',
 
   // United States
   'usa': 'us',

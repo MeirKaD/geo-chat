@@ -41,6 +41,7 @@ router.post("/", async (req: Request<{}, {}, ChatRequest>, res: Response) => {
     const pipelineResult = await runPipeline({
       userMessage: lastMessage.content,
       threadId: resolvedThreadId,
+      messages: messages,
     });
 
     const responseBody: ChatResponse = {
@@ -98,6 +99,7 @@ router.post("/stream", async (req: Request<{}, {}, ChatRequest>, res: Response) 
       {
         userMessage: lastMessage.content,
         threadId: resolvedThreadId,
+        messages: messages,
       },
       (progress) => {
         // Send progress event

@@ -85,7 +85,7 @@ function getModel(): ChatGoogleGenerativeAI {
 }
 
 /**
- * Domain hints for common place types
+ * Domain hints for common place types (default/US-centric)
  * These are suggestions - the LLM can choose to use them or not
  */
 const DOMAIN_HINTS: Record<string, string[]> = {
@@ -107,14 +107,54 @@ const DOMAIN_HINTS: Record<string, string[]> = {
 };
 
 /**
- * Get domain hints for place types
+ * Country-specific domain overrides
+ * When a country code is detected, these domains replace the defaults
  */
-function getDomainHints(placeTypes: string[]): string[] {
+const COUNTRY_DOMAIN_HINTS: Record<string, Record<string, string[]>> = {
+  // Israel - use local Israeli sites + Google Maps
+  il: {
+    restaurant: ['maps.google.com', 'rest.co.il', '2eat.co.il', 'tripadvisor.com'],
+    cafe: ['maps.google.com', 'rest.co.il', 'tripadvisor.com'],
+    bar: ['maps.google.com', 'rest.co.il', 'tripadvisor.com'],
+    hotel: ['booking.com', 'maps.google.com', 'tripadvisor.com'],
+    store: ['maps.google.com', 'zap.co.il'],
+    healthcare: ['maps.google.com', 'doctorim.co.il'],
+    hospital: ['maps.google.com'],
+    pharmacy: ['maps.google.com', 'super-pharm.co.il'],
+    gym: ['maps.google.com'],
+    real_estate: ['yad2.co.il', 'madlan.co.il', 'homeless.co.il'],
+    apartment: ['yad2.co.il', 'homeless.co.il'],
+  },
+  // UK - use local UK sites
+  gb: {
+    restaurant: ['tripadvisor.co.uk', 'maps.google.com', 'opentable.co.uk', 'thefork.co.uk'],
+    real_estate: ['rightmove.co.uk', 'zoopla.co.uk', 'onthemarket.com'],
+    apartment: ['rightmove.co.uk', 'zoopla.co.uk', 'spareroom.co.uk'],
+    healthcare: ['nhs.uk', 'maps.google.com'],
+    pharmacy: ['boots.com', 'superdrug.com', 'maps.google.com'],
+  },
+  // Germany
+  de: {
+    restaurant: ['tripadvisor.de', 'maps.google.com', 'yelp.de'],
+    real_estate: ['immobilienscout24.de', 'immowelt.de'],
+    apartment: ['immobilienscout24.de', 'wg-gesucht.de'],
+  },
+};
+
+/**
+ * Get domain hints for place types, with country-specific overrides
+ */
+function getDomainHints(placeTypes: string[], countryCode?: string): string[] {
   const hints = new Set<string>();
+
+  // Check for country-specific domain hints
+  const countryHints = countryCode ? COUNTRY_DOMAIN_HINTS[countryCode.toLowerCase()] : undefined;
 
   for (const placeType of placeTypes) {
     const normalizedType = placeType.toLowerCase().replace(/[_\s]+/g, '_');
-    const domains = DOMAIN_HINTS[normalizedType];
+
+    // First try country-specific hints, then fall back to defaults
+    const domains = countryHints?.[normalizedType] ?? DOMAIN_HINTS[normalizedType];
 
     if (domains) {
       domains.forEach((domain) => hints.add(domain));
@@ -159,7 +199,7 @@ ${filterText ? `Filters: ${filterText}` : ''}
 ${domainHints.map((d) => `- ${d}`).join('\n')}
 
 **Your Task:**
-Generate 2-4 optimized Google search queries using the \`site:\` operator.
+Generate 2-4 optimized Google search queries using the \`site:\`(one whitespace) operator.
 Also return the inferred ISO 3166-1 alpha-2 country code as "countryCode" (lowercase).
 
 **Guidelines:**
@@ -172,23 +212,23 @@ Also return the inferred ISO 3166-1 alpha-2 country code as "countryCode" (lower
 
 Query: "Italian restaurants in Brooklyn under $50"
 → [
-    "site:yelp.com Italian restaurants Brooklyn under $50",
-    "site:opentable.com Italian Brooklyn reservations",
-    "site:maps.google.com Italian restaurant Brooklyn"
+    "site: yelp.com Italian restaurants Brooklyn under $50",
+    "site: opentable.com Italian Brooklyn reservations",
+    "site: maps.google.com Italian restaurant Brooklyn"
   ]
 
 Query: "Hotels in Manhattan with pool and gym"
 → [
-    "site:booking.com hotels Manhattan pool gym",
-    "site:hotels.com Manhattan hotel amenities pool fitness",
-    "site:tripadvisor.com Manhattan hotels facilities"
+    "site: booking.com hotels Manhattan pool gym",
+    "site: hotels.com Manhattan hotel amenities pool fitness",
+    "site: tripadvisor.com Manhattan hotels facilities"
   ]
 
 Query: "3 bedroom apartments in San Francisco under $4000"
 → [
-    "site:zillow.com 3 bedroom apartments San Francisco $4000",
-    "site:apartments.com San Francisco 3br under 4000",
-    "site:redfin.com San Francisco rental 3 bed"
+    "site: zillow.com 3 bedroom apartments San Francisco $4000",
+    "site: apartments.com San Francisco 3br under 4000",
+    "site: redfin.com San Francisco rental 3 bed"
   ]
 
 **Search Strategy:**
@@ -224,11 +264,14 @@ export async function generateQueries(state: PipelineState): Promise<PipelineSta
       };
     }
 
-    const { query, location, placeTypes, filters } = state.extractedIntent;
+    const { query, location, placeTypes, filters, countryCode: intentCountryCode } = state.extractedIntent;
 
-    // Get domain hints based on place types
-    const domainHints = getDomainHints(placeTypes);
+    // Get domain hints based on place types and country
+    const domainHints = getDomainHints(placeTypes, intentCountryCode);
     console.log('[Node 2: Generate Queries] Domain hints:', domainHints);
+    if (intentCountryCode) {
+      console.log(`[Node 2: Generate Queries] Using country-specific hints for: ${intentCountryCode}`);
+    }
 
     // Create the tool
     const tool = createQueryGenerationTool();

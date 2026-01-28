@@ -9,6 +9,28 @@ import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import { MapMarker, MapPolygon } from '../services/tools/schemas.js';
 
 /**
+ * ConversationMessage - A single message in the conversation history
+ */
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * ConversationContext - Tracks conversation history for multi-turn support
+ *
+ * This enables the intent extraction node to understand follow-up messages
+ * by preserving context from previous turns in the conversation.
+ */
+export interface ConversationContext {
+  /** Previous messages in the conversation (excluding the current message) */
+  messages: ConversationMessage[];
+
+  /** The extracted intent from the previous turn, used for merging with follow-ups */
+  previousIntent: ExtractedIntent | null;
+}
+
+/**
  * ExtractedIntent - Represents the user's intent extracted from their message
  *
  * This is the output of the Intent Extraction node (Node 1).
