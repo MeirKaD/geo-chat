@@ -73,7 +73,7 @@ function getModel(): ChatGoogleGenerativeAI {
     throw new Error('GEMINI_API_KEY is required for query generation');
   }
 
-  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-exp';
+  const modelName = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 
   modelCache = new ChatGoogleGenerativeAI({
     apiKey,

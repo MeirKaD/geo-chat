@@ -30,7 +30,7 @@ type GraphState = typeof MessagesAnnotation.State;
 
 const checkpointer = new MemorySaver();
 const systemMessage = new SystemMessage(geoSystemPrompt);
-const modelName = process.env.GEMINI_MODEL ?? "gemini-2.0-flash-exp";
+const modelName = process.env.GEMINI_MODEL ?? "gemini-2.5";
 const isGeminiModel = modelName.toLowerCase().includes("gemini");
 const rawEnableMcp = process.env.ENABLE_MCP_TOOLS ?? "";
 const enableMcpTools = rawEnableMcp.toLowerCase() === "true";
@@ -90,7 +90,7 @@ function getModel() {
     throw new Error("GEMINI_API_KEY is required to run the LangGraph agent.");
   }
 
-  const modelName = process.env.GEMINI_MODEL ?? "gemini-2.0-flash-exp";
+  const modelName = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
   cachedModel = new ChatGoogleGenerativeAI({
     apiKey,
